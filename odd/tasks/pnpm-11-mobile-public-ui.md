@@ -65,6 +65,7 @@ Migrate the workspace to pnpm 11 exclusively and unify the public event experien
 - [x] Assess isolated work-unit commit: blocked because the repository has no prior commits and every file is untracked, so this work cannot be isolated from unrelated workspace content.
 - [x] Completed PUB-05 through PUB-08: added retry actions, placed `/register` inside the public shell, captured actual dialog openers, and added focus containment tests.
 - [x] PUB-09: Refined the public visual system against the supplied mobile references with the installed `designing-frontend-interfaces` skill. Route: delegated; trigger: coordinated changes to shared styles and public route structure.
+- [x] PUB-09 work-unit commit: `1bf22c2` (`feat(public): refine event briefing interface`). Native assessment: medium risk, 142 changed lines, `under_budget`; review remains pending for the next accumulated slice.
 
 ## Visual Refinement Brief
 
@@ -97,10 +98,11 @@ Migrate the workspace to pnpm 11 exclusively and unify the public event experien
 - Direct registration is now rendered by `PublicShell`, whose main content reserves 4.5rem and whose registration section reserves 5.5rem at mobile widths. This is static verification only; no browser harness is available for pixel-level confirmation.
 - The current tracker mirror was attempted before and after implementation and rejected by Engram due to multiple active runtime sessions. No Engram read-back is available.
 - 2026-09-23 visual refinement: `pnpm --filter @communications-day/frontend test` passed (4 files / 12 tests); frontend lint passed twice (writer and parent spot check); frontend build passed and generated the existing PWA service worker with four precache entries. `git diff --check` passed. Pixel-level inspection at 320px/390px remains unavailable because no browser harness is configured.
+- Native RDD assessment against `52ce3f2`: medium risk because `HomePage.tsx` is executable; 3 paths and 142 changed lines; `review_due: false` with `review_due_reason: under_budget`.
 
 ## Next Step
 
-Commit this visual-refinement work unit, assess it through the enabled receipt-driven-development flow, perform browser/PWA installation checks only with an available browser harness, and retry the tracker mirror when a unique authoritative Engram session is available.
+Accumulate the next public work unit before triggering the pending medium-risk review slice; perform browser/PWA installation checks only with an available browser harness, and retry the tracker mirror when a unique authoritative Engram session is available.
 
 ## Rollback Boundaries
 
