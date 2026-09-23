@@ -54,6 +54,7 @@ Make the complete local Docker Compose stack start from a fresh database and pro
 
 - [x] Tracker created before source changes.
 - [ ] Engram mirror pending: writes are currently blocked by ambiguous active sessions.
+- [x] Runtime work-unit commit: `ee570a8` (`fix(runtime): initialize Docker application stack`). Native assessment: medium risk, 217 changed lines, `under_budget`; review remains pending for the next accumulated slice.
 
 ## Initial Evidence
 
@@ -61,8 +62,8 @@ Make the complete local Docker Compose stack start from a fresh database and pro
 - Compose does not currently run migrations; compiled migration lookup and copied SQL location disagree.
 - `VITE_API_BASE_URL` is currently supplied after the Vite build, which does not configure browser code.
 - Fresh registration requires an active consent row, and Docker offers no administrator bootstrap workflow.
-- 2026-09-23 correction: backend lint, build, and test passed (14 files / 35 tests); frontend lint, build, and test passed (4 files / 12 tests). A fresh `docker compose down -v` followed by `docker compose up --build -d` yielded healthy PostgreSQL/backend, successful `db-init`, and running frontend. Live and ready endpoints passed; readiness reported config, database, migrations, and providers as `ok`. Frontend returned Vite HTML. PostgreSQL held six migrations and active `consent-local-placeholder` consent.
+- 2026-09-23 correction: backend lint, build, and test passed (14 files / 35 tests); frontend lint, build, and test passed (4 files / 12 tests). A fresh `docker compose down -v` followed by `docker compose up --build -d` yielded healthy PostgreSQL/backend, successful `db-init`, and running frontend. Live and ready endpoints passed; readiness reported config, database, migrations, and providers as `ok`. Frontend returned Vite HTML. PostgreSQL held six migrations and active `consent-local-placeholder` consent. Native RDD assessment against `371a575` classified the work medium risk due to Docker configuration, with 10 paths / 217 changed lines and `review_due: false` (`under_budget`).
 
 ## Next Step
 
-Commit the verified runtime work unit, assess it through the enabled receipt-driven-development flow, and keep the healthy local stack available for manual browser testing.
+Keep the healthy local stack available for manual browser testing. The next accumulated medium-risk work unit should trigger the pending review slice.
