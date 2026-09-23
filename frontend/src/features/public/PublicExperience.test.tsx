@@ -29,13 +29,16 @@ describe('Public event experience', () => {
   it('renders published home content and navigates to schedule and map routes', async () => {
     renderApp();
     expect(await screen.findByRole('heading', { name: 'Published event' })).toBeTruthy();
-    expect(screen.getByRole('note').textContent).toMatch(/no official institutional video or logo/i);
+    expect(screen.getByRole('note').textContent).toMatch(/background photograph supplied/i);
+    expect(document.querySelector<HTMLImageElement>('img[src="/logo_ciber.png"]')?.alt).toMatch(/not the event logo/i);
+    expect(document.querySelector<HTMLElement>('.hero')?.getAttribute('style')).toMatch(/strikers\.jpg/);
     const menu = screen.getByRole('button', { name: 'Menu' });
     fireEvent.click(menu);
     expect(menu.getAttribute('aria-expanded')).toBe('true');
     fireEvent.click(screen.getAllByRole('link', { name: 'Schedule' })[0]);
     expect(await screen.findByRole('heading', { name: 'Schedule' })).toBeTruthy();
     expect(screen.getByText(/No schedule entries/i)).toBeTruthy();
+    expect(screen.queryByText(/Example schedule preview/i)).toBeNull();
     fireEvent.click(screen.getAllByRole('link', { name: 'Map' })[0]);
     expect(await screen.findByTestId('event-map')).toBeTruthy();
     expect(screen.getAllByText(/Accessible entrance/i)).toHaveLength(2);
@@ -65,6 +68,9 @@ describe('Public event experience', () => {
     fireEvent.click(screen.getByRole('button', { name: /retry loading schedule/i }));
     expect(await screen.findByRole('heading', { name: 'Opening ceremony' })).toBeTruthy();
     expect(screen.getByText(/Location: Main hall/i)).toBeTruthy();
+    expect(screen.getByText(/Illustrative \/ not official/i)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Example schedule preview' })).toBeTruthy();
+    expect(screen.getByText(/Example briefing session/i)).toBeTruthy();
   });
 
   it('retries failed map loading while retaining the textual location list', async () => {
@@ -80,6 +86,27 @@ describe('Public event experience', () => {
     expect(await screen.findByTestId('event-map')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Locations' })).toBeTruthy();
     expect(screen.getAllByText(/Assembly point/i)).toHaveLength(2);
+    expect(screen.getByRole('heading', { name: /example wayfinding preview/i })).toBeTruthy();
+    expect(screen.getByText(/no coordinates or geographic map tiles/i)).toBeTruthy();
+    expect(screen.getByText(/Example arrival point/i)).toBeTruthy();
+  });
+
+  it('keeps illustrative previews out of real error states', async () => {
+    server.use(http.get('/api/public/schedule', () => HttpResponse.json({ error: 'unavailable' }, { status: 503 })));
+    window.history.pushState({}, '', '/cronograma');
+    renderApp();
+    expect(await screen.findByRole('alert')).toBeTruthy();
+    expect(screen.queryByText(/Illustrative \/ not official/i)).toBeNull();
+    expect(screen.queryByText(/Example schedule preview/i)).toBeNull();
+  });
+
+  it('keeps illustrative previews out of real empty map states', async () => {
+    server.use(http.get('/api/public/map', () => HttpResponse.json({ points: [] })));
+    window.history.pushState({}, '', '/mapa');
+    renderApp();
+    expect(await screen.findByText(/No map points have been published yet/i)).toBeTruthy();
+    expect(screen.queryByText(/Illustrative \/ not official/i)).toBeNull();
+    expect(screen.queryByText(/Example wayfinding preview/i)).toBeNull();
   });
 
   it('provides public navigation on the direct registration route', async () => {
