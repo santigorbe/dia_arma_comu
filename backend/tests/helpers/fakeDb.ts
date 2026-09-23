@@ -9,6 +9,9 @@ export class FakeDb implements Queryable {
   readonly idempotency = new Map<string, { response_status: number; response_body: unknown }>();
   readonly participants = new Map<string, Record<string, unknown>>();
   readonly audits: Record<string, unknown>[] = [];
+  readonly admins = new Map<string, { id: string; password_hash: string; is_active: boolean }>();
+  readonly invalidatedAdminTokens = new Set<string>();
+  readonly adminResources = new Map<string, Map<string, Record<string, unknown>>>();
   publicContent: Record<string, unknown>[] = [];
   publicSchedule: Record<string, unknown>[] = [];
   publicMapPoints: Record<string, unknown>[] = [];
@@ -59,6 +62,69 @@ export class FakeDb implements Queryable {
       return result([this.activeConsent]);
     }
 
+    if (text.includes('SELECT id, password_hash, is_active FROM admins WHERE identifier = $1')) {
+      const admin = this.admins.get(String(values[0]));
+      return result(admin ? [admin] : []);
+    }
+
+    if (text.includes('SELECT jwt_id FROM admin_token_invalidations')) {
+      const jwtId = String(values[0]);
+      return result(this.invalidatedAdminTokens.has(jwtId) ? [{ jwt_id: jwtId }] : []);
+    }
+
+    if (text.includes('SELECT id FROM admins WHERE id = $1 AND is_active = true')) {
+      const admin = [...this.admins.values()].find((candidate) => candidate.id === values[0] && candidate.is_active);
+      return result(admin ? [{ id: admin.id }] : []);
+    }
+
+    if (text.includes('INSERT INTO admin_token_invalidations')) {
+      this.invalidatedAdminTokens.add(String(values[0]));
+      return result([]);
+    }
+
+    if (text.startsWith('INSERT INTO event_content') || text.startsWith('INSERT INTO schedule_entries') || text.startsWith('INSERT INTO map_points') || text.startsWith('UPDATE event_content') || text.startsWith('UPDATE schedule_entries') || text.startsWith('UPDATE map_points') || text.includes('state, version, published_at') || text.includes('SELECT (SELECT count(*)')) {
+      const table = text.includes('event_content') ? 'event_content' : text.includes('schedule_entries') ? 'schedule_entries' : 'map_points';
+      const resources = this.resourceRows(table);
+
+      if (text.includes('SELECT (SELECT count(*)')) {
+        return result([{
+          content: this.resourceRows('event_content').size,
+          schedule: this.resourceRows('schedule_entries').size,
+          map: this.resourceRows('map_points').size
+        }]);
+      }
+
+      if (text.startsWith('INSERT INTO')) {
+        const id = `${table}-${resources.size + 1}`;
+        const row = this.adminResourceRow(table, id, values, 1);
+        resources.set(id, row);
+        return result([row]);
+      }
+
+      if (text.startsWith('UPDATE')) {
+        const id = String(values[text.includes('SET state = $1') ? 1 : text.includes('deleted_at = now()') ? 0 : values.length - 2]);
+        const expectedVersion = Number(values.at(-1));
+        const row = resources.get(id);
+        const currentVersion = Number(row?.version);
+        if (!row || currentVersion !== expectedVersion) return result([]);
+
+        row.version = expectedVersion + 1;
+        if (text.includes('deleted_at = now()')) {
+          resources.delete(id);
+          return result([{ id }]);
+        }
+        if (text.includes('SET state = $1')) {
+          row.state = values[0];
+          row.publishedAt = values[0] === 'published' ? '2026-09-23T00:00:00.000Z' : null;
+        } else {
+          Object.assign(row, this.adminResourceRow(table, id, values, currentVersion + 1));
+        }
+        return result([row]);
+      }
+
+      if (text.startsWith('SELECT')) return result([...resources.values()]);
+    }
+
     if (text.includes('FROM event_content')) {
       return result(this.publicContent);
     }
@@ -98,6 +164,29 @@ export class FakeDb implements Queryable {
     }
 
     return result([]);
+  }
+
+  private resourceRows(table: string) {
+    let rows = this.adminResources.get(table);
+    if (!rows) {
+      rows = new Map();
+      this.adminResources.set(table, rows);
+    }
+    return rows;
+  }
+
+  private adminResourceRow(table: string, id: string, values: unknown[], version: number): Record<string, unknown> {
+    const base = {
+      id,
+      state: 'draft',
+      version,
+      publishedAt: null,
+      createdAt: '2026-09-23T00:00:00.000Z',
+      updatedAt: '2026-09-23T00:00:00.000Z'
+    };
+    if (table === 'event_content') return { ...base, contentKey: values[0], title: values[1], body: values[2] };
+    if (table === 'schedule_entries') return { ...base, title: values[0], description: values[1], startsAt: values[2], endsAt: values[3], location: values[4] };
+    return { ...base, label: values[0], description: values[1], latitude: values[2], longitude: values[3] };
   }
 }
 

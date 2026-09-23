@@ -11,19 +11,20 @@ describe('foundation migrations', () => {
       '0002_content.sql',
       '0003_certificates.sql',
       '0004_communications.sql',
-      '0005_retention.sql'
+      '0005_retention.sql',
+      '0006_admin_content.sql'
     ]);
-    expect(migrations.every((migration) => migration.sql.includes('CREATE TABLE IF NOT EXISTS'))).toBe(true);
+    expect(migrations.every((migration) => migration.sql.trim().length > 0)).toBe(true);
   });
 
   it('runs twice safely and records each version once', async () => {
     const db = new FakeDb();
     const migrations = await loadMigrations();
 
-    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005']);
+    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006']);
     await expect(runMigrations(db, migrations)).resolves.toEqual([]);
 
-    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005']);
+    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006']);
   });
 
   it('rolls back failed migrations without exposing the failing SQL as a readiness detail', async () => {

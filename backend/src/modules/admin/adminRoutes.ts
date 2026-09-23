@@ -28,7 +28,8 @@ export function createAdminRoutes(env: AppEnv, db: Queryable): Router {
       const token = request.cookies[env.AUTH_COOKIE_NAME] as string;
       const claims = jwt.decode(token) as jwt.JwtPayload;
       await db.query('INSERT INTO admin_token_invalidations (jwt_id, admin_id, expires_at) VALUES ($1, $2, to_timestamp($3)) ON CONFLICT (jwt_id) DO NOTHING', [request.admin!.jti, request.admin!.sub, claims.exp]);
-      response.clearCookie(env.AUTH_COOKIE_NAME, authCookieOptions(env));
+      const { maxAge: _maxAge, ...clearCookieOptions } = authCookieOptions(env);
+      response.clearCookie(env.AUTH_COOKIE_NAME, clearCookieOptions);
       await audit(db, request.admin!.sub, 'admin.logout', 'session', request.admin!.sub!, 'success');
       response.status(204).end();
     } catch (error) { next(error); }

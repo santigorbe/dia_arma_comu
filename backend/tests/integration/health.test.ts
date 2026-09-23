@@ -14,7 +14,9 @@ const baseEnv = {
   CONSENT_TEXT: 'Test consent text',
   EMAIL_PROVIDER_MODE: 'simulation',
   WHATSAPP_PROVIDER_MODE: 'simulation',
-  MAP_TILE_URL: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+  MAP_TILE_URL: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  ADMIN_BOOTSTRAP_IDENTIFIER: 'test-admin',
+  ADMIN_BOOTSTRAP_PASSWORD: 'test-bootstrap-password'
 };
 
 describe('foundation health checks', () => {
@@ -30,7 +32,7 @@ describe('foundation health checks', () => {
     expect(env.providers).toEqual({ emailReady: true, whatsappReady: true });
 
     const db = new FakeDb();
-    for (const version of ['0001', '0002', '0003', '0004', '0005']) {
+    for (const version of ['0001', '0002', '0003', '0004', '0005', '0006']) {
       db.migrations.add(version);
     }
 
@@ -47,6 +49,6 @@ describe('foundation health checks', () => {
 
   it('keeps real provider readiness gated by complete configuration', () => {
     expect(() => loadEnv({ ...baseEnv, EMAIL_PROVIDER_MODE: 'real', RESEND_API_KEY: '', RESEND_FROM_EMAIL: '' })).toThrow(/RESEND_API_KEY/);
-    expect(() => loadEnv({ ...baseEnv, WHATSAPP_PROVIDER_MODE: 'real', WHATSAPP_ACCESS_TOKEN: '' })).toThrow(/WHATSAPP_API_URL/);
+    expect(() => loadEnv({ ...baseEnv, WHATSAPP_PROVIDER_MODE: 'real', WHATSAPP_API_URL: '', WHATSAPP_ACCESS_TOKEN: '' })).toThrow(/WHATSAPP_API_URL/);
   });
 });

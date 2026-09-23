@@ -10,7 +10,7 @@ export type ReadinessReport = {
   };
 };
 
-export async function checkDatabaseReady(db: Queryable, expectedMigrationCount = 5): Promise<ReadinessReport> {
+export async function checkDatabaseReady(db: Queryable, expectedMigrationCount = 6): Promise<ReadinessReport> {
   const report: ReadinessReport = {
     ready: false,
     checks: { config: 'ok', database: 'failed', migrations: 'failed', providers: 'ok' }
