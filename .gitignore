@@ -20,3 +20,5 @@ frontend/.vite/
 *.db
 postgres-data/
 .DS_Store
+# Local AI runtime state
+.atl/
