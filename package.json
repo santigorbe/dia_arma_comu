@@ -1,0 +1,31 @@
+{
+  "name": "communications-day-event-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo foundation for the Communications Day event MVP.",
+  "packageManager": "pnpm@11.0.0",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=11 <12"
+  },
+  "scripts": {
+    "install:all": "pnpm install",
+    "dev": "pnpm --filter @communications-day/backend run dev & pnpm --filter @communications-day/frontend run dev",
+    "dev:backend": "pnpm --filter @communications-day/backend run dev",
+    "dev:frontend": "pnpm --filter @communications-day/frontend run dev",
+    "lint": "pnpm --filter @communications-day/backend run lint && pnpm --filter @communications-day/frontend run lint",
+    "test": "pnpm --filter @communications-day/backend run test && pnpm --filter @communications-day/frontend run test",
+    "build": "pnpm --filter @communications-day/backend run build && pnpm --filter @communications-day/frontend run build",
+    "migrate": "pnpm --filter @communications-day/backend run migrate",
+    "bootstrap": "pnpm --filter @communications-day/backend run admin:bootstrap",
+    "worker": "pnpm --filter @communications-day/backend run worker",
+    "smoke": "pnpm --filter @communications-day/backend run smoke",
+    "docker:config": "docker compose config",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
+  }
+}

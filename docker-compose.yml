@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-communications_day}
+      POSTGRES_USER: ${POSTGRES_USER:-communications_day}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: development
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+      BACKEND_ORIGIN: ${BACKEND_ORIGIN:-http://localhost:3000}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:5173}
+      DATABASE_URL: ${DATABASE_URL:-postgres://communications_day:local-development-password@postgres:5432/communications_day}
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret-before-use}
+      AUTH_COOKIE_NAME: ${AUTH_COOKIE_NAME:-communications_day_admin}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      AUTH_COOKIE_SAME_SITE: ${AUTH_COOKIE_SAME_SITE:-lax}
+      AUTH_COOKIE_MAX_AGE_SECONDS: ${AUTH_COOKIE_MAX_AGE_SECONDS:-3600}
+      ACTIVE_CONSENT_VERSION: ${ACTIVE_CONSENT_VERSION:-consent-local-placeholder}
+      CONSENT_TEXT: ${CONSENT_TEXT:-Non-final local consent text.}
+      EMAIL_PROVIDER_MODE: ${EMAIL_PROVIDER_MODE:-simulation}
+      WHATSAPP_PROVIDER_MODE: ${WHATSAPP_PROVIDER_MODE:-simulation}
+      MAP_TILE_URL: ${MAP_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000}
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

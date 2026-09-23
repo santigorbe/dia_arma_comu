@@ -1,0 +1,10 @@
+{
+  "name": "Communications Day Event MVP",
+  "short_name": "Event MVP",
+  "description": "Public event information, schedule, map, and registration access.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F4F1E8",
+  "theme_color": "#1F3A32",
+  "icons": [{ "src": "/icons/event-placeholder.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

@@ -1,0 +1,31 @@
+import type { AppEnv } from '../../src/config/env.js';
+
+export const testEnv: AppEnv = {
+  NODE_ENV: 'test',
+  PORT: 3000,
+  FRONTEND_ORIGIN: 'http://localhost:5173',
+  BACKEND_ORIGIN: 'http://localhost:3000',
+  PUBLIC_BASE_URL: 'http://localhost:5173',
+  DATABASE_URL: 'postgres://example.invalid/db',
+  JWT_SECRET: 'test-secret-with-at-least-thirty-two-characters',
+  AUTH_COOKIE_NAME: 'communications_day_admin',
+  AUTH_COOKIE_DOMAIN: '',
+  AUTH_COOKIE_SECURE: false,
+  AUTH_COOKIE_SAME_SITE: 'lax',
+  AUTH_COOKIE_MAX_AGE_SECONDS: 3600,
+  ADMIN_BOOTSTRAP_IDENTIFIER: '',
+  ADMIN_BOOTSTRAP_PASSWORD: '',
+  ACTIVE_CONSENT_VERSION: 'consent-2026-09',
+  CONSENT_TEXT: 'Test consent text.',
+  EMAIL_PROVIDER_MODE: 'simulation',
+  WHATSAPP_PROVIDER_MODE: 'simulation',
+  RESEND_API_KEY: '',
+  RESEND_FROM_EMAIL: '',
+  WHATSAPP_API_URL: '',
+  WHATSAPP_ACCESS_TOKEN: '',
+  WHATSAPP_SENDER_ID: '',
+  WHATSAPP_TEMPLATE_REGISTRATION: '',
+  MAP_TILE_URL: 'https://tiles.example.test/{z}/{x}/{y}.png',
+  allowedOrigins: ['http://localhost:5173', 'http://localhost:3000'],
+  providers: { emailReady: true, whatsappReady: true }
+};

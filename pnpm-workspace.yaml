@@ -1,0 +1,9 @@
+packages:
+  - backend
+  - frontend
+allowBuilds:
+  bcrypt: true
+  esbuild: true
+  msw: true
+minimumReleaseAgeExclude:
+  - supertest@7.3.0
