@@ -47,6 +47,10 @@ describe('foundation health checks', () => {
     expect(() => loadEnv({ ...baseEnv, JWT_SECRET: 'short' })).not.toThrow(/short/);
   });
 
+  it('allows unset administrator bootstrap values until the one-time command is invoked', () => {
+    expect(() => loadEnv({ ...baseEnv, ADMIN_BOOTSTRAP_IDENTIFIER: '', ADMIN_BOOTSTRAP_PASSWORD: '' })).not.toThrow();
+  });
+
   it('keeps real provider readiness gated by complete configuration', () => {
     expect(() => loadEnv({ ...baseEnv, EMAIL_PROVIDER_MODE: 'real', RESEND_API_KEY: '', RESEND_FROM_EMAIL: '' })).toThrow(/RESEND_API_KEY/);
     expect(() => loadEnv({ ...baseEnv, WHATSAPP_PROVIDER_MODE: 'real', WHATSAPP_API_URL: '', WHATSAPP_ACCESS_TOKEN: '' })).toThrow(/WHATSAPP_API_URL/);

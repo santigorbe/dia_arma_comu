@@ -27,6 +27,8 @@ docker compose config
 docker compose up --build
 ```
 
+Compose runs the `db-init` service after PostgreSQL is healthy. It applies all versioned migrations and atomically creates or activates the configured consent version before the backend starts. `VITE_API_BASE_URL` is supplied as a Vite build argument, so set it before `docker compose up --build` when the browser must use a different API origin.
+
 Backend liveness is available at `http://localhost:3000/health/live`. Backend readiness is available at `http://localhost:3000/health/ready` and requires valid configuration, database connectivity, and current migrations.
 
 ## Migrations
@@ -39,7 +41,19 @@ Migrations are ordered SQL files under `backend/migrations/` and are tracked in 
 
 ## Admin bootstrap
 
-No default administrator credentials are provided. Operators must supply explicit bootstrap values in a later implementation slice before creating the first administrator.
+No default administrator credentials are provided. After the Compose stack is healthy, set explicit local-only values and run the bootstrap command once:
+
+```bash
+export ADMIN_BOOTSTRAP_IDENTIFIER='local-admin'
+export ADMIN_BOOTSTRAP_PASSWORD='choose-a-local-password-at-least-12-characters'
+docker compose run --rm \
+  -e ADMIN_BOOTSTRAP_IDENTIFIER \
+  -e ADMIN_BOOTSTRAP_PASSWORD \
+  backend node backend/dist/src/scripts/bootstrapAdmin.js
+unset ADMIN_BOOTSTRAP_IDENTIFIER ADMIN_BOOTSTRAP_PASSWORD
+```
+
+The command refuses to run if an administrator already exists. Do not add these local values to version control or use production credentials.
 
 ## Testing and build
 
