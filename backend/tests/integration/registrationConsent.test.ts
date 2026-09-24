@@ -33,4 +33,19 @@ describe('backend-enforced consent', () => {
     expect(response.body.status).toBe('registered');
     expect(db.participants.size).toBe(1);
   });
+
+  it('preserves a legacy organization when omitted and still rejects explicit conflicts', async () => {
+    const db = new FakeDb();
+    const app = createApp(testEnv, db);
+    const first = await request(app).post('/api/public/registrations').send({ ...basePayload, unitOrOrganization: 'Existing unit' });
+    expect(first.status).toBe(201);
+    const repeat = await request(app).post('/api/public/registrations').send({ ...basePayload, requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440002' });
+    expect(repeat.status).toBe(201);
+    expect(repeat.body.participantId).toBe(first.body.participantId);
+    expect(db.participants.size).toBe(1);
+    expect([...db.participants.values()][0].unit_or_organization).toBe('Existing unit');
+    const conflict = await request(app).post('/api/public/registrations').send({ ...basePayload, requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440003', unitOrOrganization: 'Different unit' });
+    expect(conflict.status).toBe(409);
+    expect(conflict.body.error).toBe('participant_conflict');
+  });
 });

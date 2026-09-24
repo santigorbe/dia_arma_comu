@@ -40,7 +40,6 @@ export function RegisterPage({ embedded = false }: { embedded?: boolean }) {
           fullName: String(form.get('fullName') ?? ''),
           email: String(form.get('email') ?? ''),
           phone: optionalString(form.get('phone')),
-          unitOrOrganization: optionalString(form.get('unitOrOrganization')),
           consent: { accepted: true, version: consentVersion }
         })
       });
@@ -85,10 +84,6 @@ export function RegisterPage({ embedded = false }: { embedded?: boolean }) {
         <label>
           Teléfono
           <input name="phone" maxLength={40} />
-        </label>
-        <label>
-          Unidad u organización
-          <input name="unitOrOrganization" maxLength={120} />
         </label>
         <section className="consent-panel">
           <h2>Versión del consentimiento {consentVersion}</h2>

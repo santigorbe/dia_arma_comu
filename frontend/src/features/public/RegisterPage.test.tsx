@@ -37,13 +37,20 @@ describe('RegisterPage', () => {
   });
 
   it('submits valid data and shows success', async () => {
-    server.use(http.post('/api/public/registrations', () => HttpResponse.json({ participantId: 'participant-1', status: 'registered', consentVersion: 'consent-local-placeholder' }, { status: 201 })));
+    let payload: Record<string, unknown> | undefined;
+    server.use(http.post('/api/public/registrations', async ({ request }) => {
+      payload = await request.json() as Record<string, unknown>;
+      return HttpResponse.json({ participantId: 'participant-1', status: 'registered', consentVersion: 'consent-local-placeholder' }, { status: 201 });
+    }));
     renderPage();
+    expect(screen.queryByLabelText(/Unidad u organización/i)).toBeNull();
     await screen.findByRole('button', { name: /enviar registro/i });
     fillForm(true);
     fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
 
     expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
+    expect(payload).not.toHaveProperty('unitOrOrganization');
+    expect(payload).not.toHaveProperty('organization');
   });
 
   it('recovers from stale consent responses with the active version', async () => {

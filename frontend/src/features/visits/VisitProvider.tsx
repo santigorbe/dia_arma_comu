@@ -23,12 +23,21 @@ export function VisitProvider({ children }: { children: React.ReactNode }) {
     setStatus('loading');
     setError(null);
     try {
-      const stored = window.localStorage.getItem(visitStorageKey) ?? undefined;
+      let stored = visitId ?? undefined;
+      try {
+        stored = window.localStorage.getItem(visitStorageKey) ?? stored;
+      } catch {
+        // Use the in-memory visit when browser persistence is unavailable.
+      }
       const response = await apiRequest<VisitResponse>('/api/public/visits/init', {
         method: 'POST',
         body: JSON.stringify(stored ? { visitId: stored } : {})
       });
-      window.localStorage.setItem(visitStorageKey, response.visitId);
+      try {
+        window.localStorage.setItem(visitStorageKey, response.visitId);
+      } catch {
+        // A successful API response remains usable without persistence.
+      }
       setVisitId(response.visitId);
       setStatus('ready');
     } catch {

@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { VisitProvider, useVisit, visitStorage } from './VisitProvider';
 
 function Probe() {
@@ -8,6 +8,7 @@ function Probe() {
 }
 
 describe('VisitProvider', () => {
+  afterEach(() => vi.restoreAllMocks());
   beforeEach(() => {
     window.localStorage.clear();
     vi.restoreAllMocks();
@@ -28,6 +29,13 @@ describe('VisitProvider', () => {
     render(<VisitProvider><Probe /></VisitProvider>);
 
     await waitFor(() => expect(window.localStorage.getItem(visitStorage.key)).toBe('550e8400-e29b-41d4-a716-446655440001'));
+  });
+
+  it.each(['getItem', 'setItem'] as const)('keeps the visit usable when storage %s throws', async (method) => {
+    vi.spyOn(Storage.prototype, method).mockImplementation(() => { throw new Error('Storage denied'); });
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ visitId: '550e8400-e29b-41d4-a716-446655440000', replaced: false }));
+    render(<VisitProvider><Probe /></VisitProvider>);
+    expect(await screen.findByText('ready:550e8400-e29b-41d4-a716-446655440000')).toBeTruthy();
   });
 });
 

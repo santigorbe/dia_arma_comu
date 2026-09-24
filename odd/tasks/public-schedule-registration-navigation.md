@@ -11,8 +11,8 @@ Publish clearly fictional demo activities, offer registration on first visit, si
 
 ## Stable Tasks
 - [x] PSRN-01 — Add duplicate-safe published fictional schedule migration and migration-list regression coverage; remove redundant schedule preview.
-- [ ] PSRN-02 — Auto-open registration on first visit, persist dismissal, support manual reopening and unavailable storage, and avoid standalone-route duplication.
-- [ ] PSRN-03 — Remove organization from public form/payload while retaining optional backend compatibility and existing stored values.
+- [x] PSRN-02 — Auto-open registration on first visit, persist dismissal, support manual reopening and unavailable storage, and avoid standalone-route duplication.
+- [x] PSRN-03 — Remove organization from public form/payload while retaining optional backend compatibility and existing stored values.
 - [ ] PSRN-04 — Align all four bottom-nav icons above centered labels with existing FontAwesome, tokens, focus and touch targets.
 
 ## Checks and Delivery
@@ -32,4 +32,9 @@ Publish clearly fictional demo activities, offer registration on first visit, si
 - Runtime harness: migration runner/FakeDb and MSW public route exercised. PostgreSQL executables unavailable; SQL seed execution against a real database is not verified.
 - Browser discovery: no Chromium/Chrome/Playwright executable or locally resolvable Playwright/Puppeteer package; pixel verification unavailable.
 - Engram full-document mirror attempted without session ID and rejected for multiple active runtime sessions; pending, no ID invented.
-- PSRN-02/03/04 implementation and final verification pending.
+- PSRN-01 commit: `55fab58` (85 authored changed lines).
+- PSRN-02/03: observed red frontend run (4 failures), backend legacy-organization run (1 failure), and visit storage run (2 failures). Focused green: frontend 3 files / 17 tests; backend 1 file / 4 tests.
+- Runtime harness: MSW-mounted application tests exercise first visit, dismissal/remount, manual reopen, standalone form focus, denied storage, and omitted payload; Supertest/FakeDb verifies legacy organization retention and explicit conflicts.
+- Narrow VisitProvider fallback added because denied storage otherwise disabled registration. API failures retain the existing error state. Without storage, persistence across full reloads is unavailable by design.
+- Unrelated `odd/tasks/smooth-ui-motion.md` appeared during execution and is preserved unstaged.
+- PSRN-04 implementation and final verification pending.

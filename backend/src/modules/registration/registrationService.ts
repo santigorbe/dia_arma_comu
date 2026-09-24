@@ -17,7 +17,8 @@ export async function registerParticipant(env: AppEnv, db: Queryable, input: Reg
 
   const existing = await findParticipantByEmail(db, input.email);
   if (existing) {
-    const sameIdentity = existing.full_name === input.fullName && existing.phone === (input.phone ?? null) && existing.unit_or_organization === (input.unitOrOrganization ?? null);
+    const sameOrganization = input.unitOrOrganization === undefined || existing.unit_or_organization === input.unitOrOrganization;
+    const sameIdentity = existing.full_name === input.fullName && existing.phone === (input.phone ?? null) && sameOrganization;
     if (!sameIdentity) {
       throw new AppError(409, 'participant_conflict');
     }

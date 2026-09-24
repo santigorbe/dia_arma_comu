@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faCalendarCheck, faLocationDot } from '@fortawesome/free-solid-svg-icons';
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useLocation } from 'react-router';
 import { RegistrationModal } from './RegistrationModal';
 
 const dismissedRegistrationKey = 'communications_day_registration_dismissed';
@@ -9,23 +9,41 @@ const dismissedRegistrationKey = 'communications_day_registration_dismissed';
 export type PublicShellContext = { openRegistration: (opener?: HTMLElement | null) => void };
 
 export function PublicShell() {
+  const { pathname } = useLocation();
+  const isRegistrationPage = pathname.replace(/\/+$/, '') === '/register';
   const [menuOpen, setMenuOpen] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(false);
+  const registrationPrompted = useRef(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const registrationOpener = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (window.location.hash === '#register' && !window.localStorage.getItem(dismissedRegistrationKey)) setRegistrationOpen(true);
-  }, []);
+    if (isRegistrationPage || registrationPrompted.current) return;
+    registrationPrompted.current = true;
+    try {
+      if (window.localStorage.getItem(dismissedRegistrationKey)) return;
+    } catch {
+      // Storage restrictions must not prevent opening or closing the dialog.
+    }
+    setRegistrationOpen(true);
+  }, [isRegistrationPage]);
 
   const closeRegistration = useCallback(() => {
-    window.localStorage.setItem(dismissedRegistrationKey, 'true');
     setRegistrationOpen(false);
+    try {
+      window.localStorage.setItem(dismissedRegistrationKey, 'true');
+    } catch {
+      // Dismissal still applies to this mounted shell when persistence is denied.
+    }
   }, []);
   const openRegistration = useCallback((opener?: HTMLElement | null) => {
+    if (isRegistrationPage) {
+      document.querySelector<HTMLInputElement>('#main-content input[name="fullName"]')?.focus();
+      return;
+    }
     registrationOpener.current = opener ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     setRegistrationOpen(true);
-  }, []);
+  }, [isRegistrationPage]);
 
   return <div className="public-app">
     <a className="skip-link" href="#main-content">Ir al contenido principal</a>
@@ -42,6 +60,6 @@ export function PublicShell() {
     <main id="main-content" className="public-main"><Outlet context={{ openRegistration } satisfies PublicShellContext} /></main>
     <nav className="mobile-nav" aria-label="Navegación móvil"><NavLink to="/" end>Inicio</NavLink><NavLink to="/cronograma"><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /> Cronograma</NavLink><NavLink to="/mapa"><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> Mapa</NavLink><button onClick={(event) => openRegistration(event.currentTarget)}>Registrarse</button></nav>
     <footer className="site-footer">Información del evento · El contenido es publicado por los operadores del evento.</footer>
-    <RegistrationModal open={registrationOpen} onClose={closeRegistration} returnFocusRef={registrationOpener} />
+    <RegistrationModal open={registrationOpen && !isRegistrationPage} onClose={closeRegistration} returnFocusRef={registrationOpener} />
   </div>;
 }

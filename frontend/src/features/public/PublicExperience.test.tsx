@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type React from 'react';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
@@ -23,9 +23,38 @@ const server = setupServer(
 
 describe('Public event experience', () => {
   beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-  afterEach(() => server.resetHandlers());
+  afterEach(() => { server.resetHandlers(); vi.restoreAllMocks(); });
   afterAll(() => server.close());
-  beforeEach(() => { window.localStorage.clear(); window.history.pushState({}, '', '/'); });
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.localStorage.setItem('communications_day_registration_dismissed', 'true');
+    window.history.pushState({}, '', '/');
+  });
+
+  it('opens registration on first visit without a hash and persists dismissal across remounts', async () => {
+    window.localStorage.removeItem('communications_day_registration_dismissed');
+    const first = renderApp();
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /cerrar registro/i }));
+    expect(window.localStorage.getItem('communications_day_registration_dismissed')).toBe('true');
+    first.unmount();
+    renderApp();
+    await screen.findByText('Celebración del Día del Arma de Comunicaciones');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.click(screen.getByRole('navigation', { name: 'Navegación móvil' }).querySelector('button')!);
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+  });
+
+  it('can open, dismiss, and reopen when localStorage is unavailable', async () => {
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw new Error('Storage unavailable'); });
+    renderApp();
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    await waitFor(() => expect((screen.getByRole('button', { name: /enviar registro/i }) as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.click(screen.getByRole('navigation', { name: 'Navegación móvil' }).querySelector('button')!);
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+  });
 
   it('renders published home content and navigates to schedule and map routes', async () => {
     renderApp();
@@ -121,12 +150,17 @@ describe('Public event experience', () => {
   });
 
   it('provides public navigation on the direct registration route', async () => {
+    window.localStorage.removeItem('communications_day_registration_dismissed');
     window.history.pushState({}, '', '/register');
     renderApp();
     expect(await screen.findByRole('heading', { name: /regístrese para participar del evento/i })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Página principal del evento' })).toBeTruthy();
     expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toBeTruthy();
     expect(screen.getByRole('navigation', { name: 'Navegación móvil' })).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.click(screen.getByRole('navigation', { name: 'Navegación móvil' }).querySelector('button')!);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(screen.getByLabelText('Nombre completo'));
   });
 
   it('traps focus, closes with Escape or backdrop interaction, and restores the actual opener', async () => {
