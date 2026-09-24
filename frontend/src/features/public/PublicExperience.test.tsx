@@ -83,9 +83,7 @@ describe('Public event experience', () => {
     fireEvent.click(screen.getByRole('button', { name: /reintentar carga del cronograma/i }));
     expect(await screen.findByRole('heading', { name: 'Ceremonia de apertura' })).toBeTruthy();
     expect(screen.getByText(/Ubicación: Salón principal/i)).toBeTruthy();
-    expect(screen.getByText(/Ilustrativo \/ no oficial/i)).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Vista previa de ejemplo del cronograma' })).toBeTruthy();
-    expect(screen.getByText(/Sesión informativa de ejemplo/i)).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Vista previa de ejemplo del cronograma' })).toBeNull();
   });
 
   it('retries failed map loading while retaining the textual location list', async () => {

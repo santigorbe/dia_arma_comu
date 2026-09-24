@@ -32,7 +32,7 @@ describe('foundation health checks', () => {
     expect(env.providers).toEqual({ emailReady: true, whatsappReady: true });
 
     const db = new FakeDb();
-    for (const version of ['0001', '0002', '0003', '0004', '0005', '0006']) {
+    for (const version of ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008']) {
       db.migrations.add(version);
     }
 
