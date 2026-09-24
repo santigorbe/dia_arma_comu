@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type React from 'react';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
@@ -86,6 +86,21 @@ describe('Public event experience', () => {
     fireEvent.click(screen.getAllByRole('link', { name: 'Mapa' })[0]);
     expect(await screen.findByTestId('event-map')).toBeTruthy();
     expect(screen.getAllByText(/Entrada accesible/i)).toHaveLength(2);
+  });
+
+  it('gives all four bottom navigation controls a decorative icon before the visible label', async () => {
+    renderApp();
+    await screen.findByText('Celebración del Día del Arma de Comunicaciones');
+    const navigation = screen.getByRole('navigation', { name: 'Navegación móvil' });
+    const controls = navigation.querySelectorAll('a, button');
+    expect(controls).toHaveLength(4);
+    for (const [index, label] of ['Inicio', 'Cronograma', 'Mapa', 'Registrarse'].entries()) {
+      const control = within(navigation).getByRole(index === 3 ? 'button' : 'link', { name: label });
+      expect(control.firstElementChild?.tagName.toLowerCase()).toBe('svg');
+      expect(control.firstElementChild?.getAttribute('aria-hidden')).toBe('true');
+      expect(control.lastElementChild?.tagName).toBe('SPAN');
+      expect(control.lastElementChild?.textContent).toBe(label);
+    }
   });
 
   it('retries failed home content loading', async () => {
