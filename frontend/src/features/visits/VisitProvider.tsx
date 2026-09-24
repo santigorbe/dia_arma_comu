@@ -33,7 +33,7 @@ export function VisitProvider({ children }: { children: React.ReactNode }) {
       setStatus('ready');
     } catch {
       setStatus('error');
-      setError('Visit initialization failed. Please retry when the network is available.');
+      setError('No se pudo inicializar la visita. Inténtelo de nuevo cuando haya conexión.');
     }
   }
 

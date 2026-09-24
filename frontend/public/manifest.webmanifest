@@ -1,7 +1,7 @@
 {
-  "name": "Communications Day Event MVP",
-  "short_name": "Event MVP",
-  "description": "Public event information, schedule, map, and registration access.",
+  "name": "Día de las Comunicaciones — Información del evento",
+  "short_name": "Comunicaciones",
+  "description": "Información pública del evento, cronograma, mapa y acceso al registro.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F4F1E8",

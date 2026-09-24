@@ -12,7 +12,8 @@ describe('foundation migrations', () => {
       '0003_certificates.sql',
       '0004_communications.sql',
       '0005_retention.sql',
-      '0006_admin_content.sql'
+      '0006_admin_content.sql',
+      '0007_demo_map_points.sql'
     ]);
     expect(migrations.every((migration) => migration.sql.trim().length > 0)).toBe(true);
   });
@@ -21,10 +22,10 @@ describe('foundation migrations', () => {
     const db = new FakeDb();
     const migrations = await loadMigrations();
 
-    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006']);
+    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007']);
     await expect(runMigrations(db, migrations)).resolves.toEqual([]);
 
-    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006']);
+    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007']);
   });
 
   it('rolls back failed migrations without exposing the failing SQL as a readiness detail', async () => {

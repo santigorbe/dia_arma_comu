@@ -31,7 +31,7 @@ export function RegistrationModal({ open, onClose, returnFocusRef }: { open: boo
   if (!open) return null;
   return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
     <section ref={dialog} className="registration-modal" role="dialog" aria-modal="true" aria-labelledby="registration-title" onMouseDown={(event) => event.stopPropagation()}>
-      <button ref={closeButton} className="modal-close" onClick={onClose} aria-label="Close registration">×</button>
+      <button ref={closeButton} className="modal-close" onClick={onClose} aria-label="Cerrar registro">×</button>
       <RegisterPage embedded />
     </section>
   </div>;

@@ -28,20 +28,20 @@ export function PublicShell() {
   }, []);
 
   return <div className="public-app">
-    <a className="skip-link" href="#main-content">Skip to content</a>
+    <a className="skip-link" href="#main-content">Ir al contenido principal</a>
     <header className="site-header">
-      <NavLink to="/" className="brand" aria-label="Event home"><span className="brand-mark" aria-hidden="true">◆</span><span>Event information</span></NavLink>
-      <button ref={menuButton} className="menu-button" aria-expanded={menuOpen} aria-controls="site-navigation" onClick={() => setMenuOpen((value) => !value)}><FontAwesomeIcon icon={faBars} aria-hidden="true" /> Menu</button>
-      <nav id="site-navigation" className={menuOpen ? 'site-nav open' : 'site-nav'} aria-label="Primary navigation">
-        <NavLink to="/" end onClick={() => setMenuOpen(false)}>Home</NavLink>
-        <NavLink to="/cronograma" onClick={() => setMenuOpen(false)}><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /> Schedule</NavLink>
-        <NavLink to="/mapa" onClick={() => setMenuOpen(false)}><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> Map</NavLink>
-        <button className="nav-register" onClick={(event) => { setMenuOpen(false); openRegistration(event.currentTarget); }}>Register</button>
+      <NavLink to="/" className="brand" aria-label="Página principal del evento"><img className="brand-logo" src="/logo_ciber.png" alt="Logo de Ciberdefensa" /><span className="brand-copy"><span>Ejército Argentino</span><span>COMUNICACIONES E INFORMÁTICA</span></span></NavLink>
+      <button ref={menuButton} className="menu-button" aria-label={menuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'} title={menuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'} aria-expanded={menuOpen} aria-controls="site-navigation" onClick={() => setMenuOpen((value) => !value)}><FontAwesomeIcon icon={faBars} aria-hidden="true" /></button>
+      <nav id="site-navigation" className={menuOpen ? 'site-nav open' : 'site-nav'} aria-label="Navegación principal">
+        <NavLink to="/" end onClick={() => setMenuOpen(false)}>Inicio</NavLink>
+        <NavLink to="/cronograma" onClick={() => setMenuOpen(false)}><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /> Cronograma</NavLink>
+        <NavLink to="/mapa" onClick={() => setMenuOpen(false)}><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> Mapa</NavLink>
+        <button className="nav-register" onClick={(event) => { setMenuOpen(false); openRegistration(event.currentTarget); }}>Registrarse</button>
       </nav>
     </header>
     <main id="main-content" className="public-main"><Outlet context={{ openRegistration } satisfies PublicShellContext} /></main>
-    <nav className="mobile-nav" aria-label="Mobile navigation"><NavLink to="/" end>Home</NavLink><NavLink to="/cronograma"><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /> Schedule</NavLink><NavLink to="/mapa"><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> Map</NavLink><button onClick={(event) => openRegistration(event.currentTarget)}>Register</button></nav>
-    <footer className="site-footer">Event information · Content is published by event operators.</footer>
+    <nav className="mobile-nav" aria-label="Navegación móvil"><NavLink to="/" end>Inicio</NavLink><NavLink to="/cronograma"><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /> Cronograma</NavLink><NavLink to="/mapa"><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> Mapa</NavLink><button onClick={(event) => openRegistration(event.currentTarget)}>Registrarse</button></nav>
+    <footer className="site-footer">Información del evento · El contenido es publicado por los operadores del evento.</footer>
     <RegistrationModal open={registrationOpen} onClose={closeRegistration} returnFocusRef={registrationOpener} />
   </div>;
 }
