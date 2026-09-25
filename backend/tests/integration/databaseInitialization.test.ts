@@ -14,7 +14,8 @@ describe('database initialization', () => {
       '0005',
       '0006',
       '0007',
-      '0008'
+       '0008',
+       '0009'
     ]);
 
     const deactivateIndex = db.statements.findIndex((statement) => statement.startsWith('UPDATE consent_versions SET is_active = false'));

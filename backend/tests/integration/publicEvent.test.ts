@@ -24,13 +24,24 @@ describe('public event read contracts', () => {
     expect(db.statements.at(-1)).toContain('ORDER BY starts_at ASC, ends_at ASC, id ASC');
   });
 
-  it('returns map points with labels and coordinates, including an empty collection', async () => {
+  it('returns published Córdoba demo points with accessible labels and coordinates', async () => {
     const db = new FakeDb();
     const empty = await request(createApp(testEnv, db)).get('/api/public/map');
     expect(empty.body).toEqual({ points: [] });
-    db.publicMapPoints = [{ id: 'a', label: 'Accessible entrance', description: 'Step-free access', latitude: -34.6, longitude: -58.4 }];
+    db.publicMapPoints = [
+      { id: 'a', label: 'Acceso principal', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3821, longitude: -64.1824 },
+      { id: 'b', label: 'Acreditación', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3817, longitude: -64.1817 },
+      { id: 'c', label: 'Acto central', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3825, longitude: -64.1819 },
+      { id: 'd', label: 'Auditorio', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.383, longitude: -64.1822 },
+      { id: 'e', label: 'Estacionamiento', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3814, longitude: -64.183 },
+      { id: 'f', label: 'Sanitarios', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3828, longitude: -64.1831 }
+    ];
     const response = await request(createApp(testEnv, db)).get('/api/public/map');
-    expect(response.body.points[0]).toMatchObject({ label: 'Accessible entrance', latitude: -34.6, longitude: -58.4 });
+    expect(response.body.points).toHaveLength(6);
+    expect(response.body.points).toEqual(expect.arrayContaining([
+      expect.objectContaining({ label: 'Acceso principal', latitude: -31.3821, longitude: -64.1824 }),
+      expect.objectContaining({ label: 'Sanitarios', latitude: -31.3828, longitude: -64.1831 })
+    ]));
     expect(db.statements.at(-1)).toContain('state = $1');
   });
 });

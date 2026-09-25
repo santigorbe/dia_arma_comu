@@ -6,24 +6,35 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { App } from '../../main';
 import { VisitProvider } from '../visits/VisitProvider';
 
+const mapControls = vi.hoisted(() => ({ fitBounds: vi.fn(), setView: vi.fn() }));
+
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="event-map">{children}</div>,
   TileLayer: () => null,
   Marker: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Popup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useMap: () => ({ fitBounds: () => undefined, setView: () => undefined })
+  useMap: () => mapControls
 }));
+
+const cordobaDemoPoints = [
+  { id: 'a', label: 'Acceso principal', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3821, longitude: -64.1824 },
+  { id: 'b', label: 'Acreditación', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3817, longitude: -64.1817 },
+  { id: 'c', label: 'Acto central', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3825, longitude: -64.1819 },
+  { id: 'd', label: 'Auditorio', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.383, longitude: -64.1822 },
+  { id: 'e', label: 'Estacionamiento', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3814, longitude: -64.183 },
+  { id: 'f', label: 'Sanitarios', description: 'Datos ilustrativos / no oficiales. Coordenada demo deliberadamente aproximada para orientar.', latitude: -31.3828, longitude: -64.1831 }
+];
 
 const server = setupServer(
   http.post('/api/public/visits/init', () => HttpResponse.json({ visitId: '550e8400-e29b-41d4-a716-446655440000', replaced: false })),
   http.get('/api/public/content', () => HttpResponse.json({ entries: [{ key: 'hero', title: 'Evento publicado', body: 'Contenido del evento publicado' }] })),
   http.get('/api/public/schedule', () => HttpResponse.json({ entries: [] })),
-  http.get('/api/public/map', () => HttpResponse.json({ points: [{ id: 'a', label: 'Entrada accesible', description: 'Acceso sin escalones', latitude: -34.6, longitude: -58.4 }] }))
+  http.get('/api/public/map', () => HttpResponse.json({ points: cordobaDemoPoints }))
 );
 
 describe('Public event experience', () => {
   beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-  afterEach(() => { server.resetHandlers(); vi.restoreAllMocks(); });
+  afterEach(() => { server.resetHandlers(); vi.restoreAllMocks(); mapControls.fitBounds.mockClear(); mapControls.setView.mockClear(); });
   afterAll(() => server.close());
   beforeEach(() => {
     window.localStorage.clear();
@@ -85,7 +96,20 @@ describe('Public event experience', () => {
     expect(screen.queryByText(/Vista previa de ejemplo del cronograma/i)).toBeNull();
     fireEvent.click(screen.getAllByRole('link', { name: 'Mapa' })[0]);
     expect(await screen.findByTestId('event-map')).toBeTruthy();
-    expect(screen.getAllByText(/Entrada accesible/i)).toHaveLength(2);
+    expect(screen.getAllByText(/Acceso principal/i)).toHaveLength(2);
+  });
+
+  it('lists the Córdoba demo points and focuses the map on their bounds', async () => {
+    window.history.pushState({}, '', '/mapa');
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: 'Ubicaciones ilustrativas' })).toBeTruthy();
+    expect(screen.getAllByText(/Acceso principal/i)).toHaveLength(2);
+    expect(screen.getAllByText(/Sanitarios/i)).toHaveLength(2);
+    await waitFor(() => expect(mapControls.fitBounds).toHaveBeenCalledWith(
+      cordobaDemoPoints.map(({ latitude, longitude }) => [latitude, longitude]),
+      { padding: [24, 24], maxZoom: 16 }
+    ));
   });
 
   it('gives all four bottom navigation controls a decorative icon before the visible label', async () => {
