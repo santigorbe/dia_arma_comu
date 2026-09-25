@@ -18,7 +18,8 @@ describe('foundation migrations', () => {
        '0009_correct_demo_map_points.sql',
        '0010_participant_personnel_type.sql',
        '0011_real_event_content_and_schedule.sql',
-       '0012_participant_service_status.sql'
+       '0012_participant_service_status.sql',
+       '0013_schedule_entry_categories.sql'
     ]);
     expect(migrations.every((migration) => migration.sql.trim().length > 0)).toBe(true);
   });
@@ -27,10 +28,10 @@ describe('foundation migrations', () => {
     const db = new FakeDb();
     const migrations = await loadMigrations();
 
-    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012']);
+    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013']);
     await expect(runMigrations(db, migrations)).resolves.toEqual([]);
 
-    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012']);
+    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013']);
   });
 
   it('seeds published fictional activities with stable IDs and preserves existing rows', async () => {
@@ -82,6 +83,25 @@ describe('foundation migrations', () => {
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS service_status text');
     expect(sql).toContain("service_status IN ('actividad', 'retiro')");
     expect(sql).not.toMatch(/\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bTRUNCATE\b/i);
+  });
+
+  it('assigns a visual category to each real schedule entry without touching other data', async () => {
+    const migration = (await loadMigrations()).find((entry) => entry.name === '0013_schedule_entry_categories.sql');
+    expect(migration).toBeDefined();
+    const sql = migration!.sql;
+
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS category text');
+    for (const id of [
+      '0f4abc54-cd4a-41fd-b43d-cc26c5ad5152',
+      '052d6b67-b8a7-45ce-ab32-7e9f361e429c',
+      '3c35c4a4-bf23-4669-846a-f60ca0e45f0f',
+      '3501d84d-9eb5-483c-a4e4-737c6d7779ef',
+      '94a61023-12a5-447c-93c3-6e397d7d4935',
+      '819a4590-32e6-4ef3-9a60-4181f0343c8c'
+    ]) {
+      expect(sql).toContain(id);
+    }
+    expect(sql).not.toMatch(/\bINSERT\b|\bDELETE\b|\bTRUNCATE\b/i);
   });
 
   it('rolls back failed migrations without exposing the failing SQL as a readiness detail', async () => {

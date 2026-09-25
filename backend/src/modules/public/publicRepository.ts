@@ -1,7 +1,7 @@
 import type { Queryable } from '../../db/pool.js';
 
 export type PublicContent = { key: string; title: string; body: string };
-export type PublicScheduleEntry = { id: string; title: string; description: string | null; startsAt: string; endsAt: string; location: string | null };
+export type PublicScheduleEntry = { id: string; title: string; description: string | null; startsAt: string; endsAt: string; location: string | null; category: string | null };
 export type PublicMapPoint = { id: string; label: string; description: string | null; latitude: number; longitude: number };
 
 export async function readPublishedContent(db: Queryable): Promise<PublicContent[]> {
@@ -17,7 +17,7 @@ export async function readPublishedContent(db: Queryable): Promise<PublicContent
 
 export async function readPublishedSchedule(db: Queryable): Promise<PublicScheduleEntry[]> {
   const result = await db.query(
-    `SELECT id, title, description, starts_at AS "startsAt", ends_at AS "endsAt", location
+    `SELECT id, title, description, starts_at AS "startsAt", ends_at AS "endsAt", location, category
      FROM schedule_entries
      WHERE state = $1 AND deleted_at IS NULL AND published_at IS NOT NULL
      ORDER BY starts_at ASC, ends_at ASC, id ASC`,
