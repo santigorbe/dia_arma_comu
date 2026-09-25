@@ -33,10 +33,13 @@ export function HomePage() {
         <source src={heroVideo} type="video/mp4" />
       </video>
       <div className="hero-content">
-        <p className="hero-badge">29 DE SEPTIEMBRE - 1944-2024</p>
+        <p className="hero-badge">84° ANIVERSARIO · SAN GABRIEL ARCÁNGEL</p>
         <h1 id="hero-title">Celebración del Día del Arma de Comunicaciones</h1>
         <p className="hero-subtitle">y del Sistema de Computación de Datos</p>
-        <p className="hero-label">GUARNICIÓN EJÉRCITO “CÓRDOBA”</p>
+        <p className="hero-label">
+          <span className="hero-label-item"><FontAwesomeIcon icon={faCalendarDays} aria-hidden="true" /> 2 DE OCTUBRE DE 2026 · 11:00 HS</span>
+          <span className="hero-label-item"><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> GUARNICIÓN EJÉRCITO “CÓRDOBA”</span>
+        </p>
         {state.status === 'loading' && <p role="status">Cargando el contenido publicado del evento…</p>}
         {state.status === 'error' && <div role="alert"><p>El contenido publicado del evento no está disponible en este momento.</p><button className="button secondary" onClick={retry}>Reintentar carga del contenido</button></div>}
         {state.status === 'ready' && <p className="hero-copy">{hero?.body ?? 'El contenido publicado del evento aparecerá aquí cuando esté disponible.'}</p>}

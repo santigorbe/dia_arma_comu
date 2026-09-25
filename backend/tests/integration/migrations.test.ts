@@ -16,7 +16,9 @@ describe('foundation migrations', () => {
       '0007_demo_map_points.sql',
        '0008_demo_schedule.sql',
        '0009_correct_demo_map_points.sql',
-       '0010_participant_personnel_type.sql'
+       '0010_participant_personnel_type.sql',
+       '0011_real_event_content_and_schedule.sql',
+       '0012_participant_service_status.sql'
     ]);
     expect(migrations.every((migration) => migration.sql.trim().length > 0)).toBe(true);
   });
@@ -25,10 +27,10 @@ describe('foundation migrations', () => {
     const db = new FakeDb();
     const migrations = await loadMigrations();
 
-    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010']);
+    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012']);
     await expect(runMigrations(db, migrations)).resolves.toEqual([]);
 
-    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010']);
+    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012']);
   });
 
   it('seeds published fictional activities with stable IDs and preserves existing rows', async () => {
@@ -56,6 +58,30 @@ describe('foundation migrations', () => {
     expect(sql.match(/Datos ilustrativos \/ no oficiales\. Coordenada demo deliberadamente aproximada para orientar\./g)).toHaveLength(6);
     expect(sql.match(/-31\.38\d+::numeric, -64\.18\d+::numeric/g)).toHaveLength(6);
     expect(sql).not.toMatch(/\b(INSERT|DELETE|TRUNCATE)\b/i);
+  });
+
+  it('retires the fictional demo schedule via soft delete and seeds the real published content and schedule', async () => {
+    const migration = (await loadMigrations()).find((entry) => entry.name === '0011_real_event_content_and_schedule.sql');
+    expect(migration).toBeDefined();
+    const sql = migration!.sql;
+
+    expect(sql).toContain("UPDATE schedule_entries");
+    expect(sql).toContain("SET deleted_at = now()");
+    expect(sql).toContain('d29a0008-0000-4000-8000-000000000001');
+    expect(sql).toContain("ON CONFLICT (content_key) DO UPDATE");
+    expect(sql).toContain("ON CONFLICT (id) DO NOTHING");
+    expect(sql.match(/2026-10-02 \d{2}:\d{2}:00-03:00/g)).toHaveLength(12);
+    expect(sql).not.toMatch(/\bDELETE\b|\bTRUNCATE\b/i);
+  });
+
+  it('constrains service_status to the personnel type without touching existing data', async () => {
+    const migration = (await loadMigrations()).find((entry) => entry.name === '0012_participant_service_status.sql');
+    expect(migration).toBeDefined();
+    const sql = migration!.sql;
+
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS service_status text');
+    expect(sql).toContain("service_status IN ('actividad', 'retiro')");
+    expect(sql).not.toMatch(/\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bTRUNCATE\b/i);
   });
 
   it('rolls back failed migrations without exposing the failing SQL as a readiness detail', async () => {

@@ -79,8 +79,9 @@ describe('Public event experience', () => {
     expect(video?.getAttribute('aria-hidden')).toBe('true');
     expect(document.querySelector<HTMLImageElement>('img[src="/logo_ciber.png"]')?.alt).toMatch(/logo de ciberdefensa/i);
     expect(document.querySelector<HTMLElement>('.hero')?.getAttribute('style')).toMatch(/strikers\.jpg/);
-    expect(screen.getByText('29 DE SEPTIEMBRE - 1944-2024')).toBeTruthy();
+    expect(screen.getByText('84° ANIVERSARIO · SAN GABRIEL ARCÁNGEL')).toBeTruthy();
     expect(screen.getByText('y del Sistema de Computación de Datos')).toBeTruthy();
+    expect(screen.getByText(/2 DE OCTUBRE DE 2026 · 11:00 HS/i)).toBeTruthy();
     expect(screen.getByText('GUARNICIÓN EJÉRCITO “CÓRDOBA”')).toBeTruthy();
     expect(screen.getByRole('link', { name: /VER CRONOGRAMA/i }).getAttribute('href')).toBe('/cronograma');
     expect(screen.getByRole('link', { name: /VER MAPA OPERATIVO/i }).getAttribute('href')).toBe('/mapa');
