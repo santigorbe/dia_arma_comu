@@ -24,16 +24,16 @@ export async function findActiveConsent(db: Queryable) {
 }
 
 export async function findParticipantByEmail(db: Queryable, email: string) {
-  const result = await db.query('SELECT id, full_name, email, phone, unit_or_organization, personnel_type, military_rank FROM participants WHERE email = $1 LIMIT 1', [email]);
+  const result = await db.query('SELECT id, full_name, email, phone, unit_or_organization, personnel_type, military_rank, service_status FROM participants WHERE email = $1 LIMIT 1', [email]);
   return result.rows[0] as Record<string, unknown> | undefined;
 }
 
 export async function createParticipantRegistration(db: Queryable, input: RegistrationRequest) {
   const participant = await db.query(
-    `INSERT INTO participants (full_name, email, phone, unit_or_organization, personnel_type, military_rank)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO participants (full_name, email, phone, unit_or_organization, personnel_type, military_rank, service_status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id`,
-    [input.fullName, input.email, input.phone ?? null, input.unitOrOrganization ?? null, input.personnelType, input.militaryRank ?? null]
+    [input.fullName, input.email, input.phone ?? null, input.unitOrOrganization ?? null, input.personnelType, input.militaryRank ?? null, input.serviceStatus ?? null]
   );
   const participantId = String(participant.rows[0]?.id);
   await db.query(

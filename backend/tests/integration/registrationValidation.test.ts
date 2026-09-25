@@ -1,8 +1,9 @@
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../../src/app.js';
 import { FakeDb } from '../helpers/fakeDb.js';
 import { testEnv } from '../helpers/testEnv.js';
+import { resetRateLimitsForTests } from '../../src/shared/http/rateLimits.js';
 
 function payload(overrides: Record<string, unknown> = {}) {
   return {
@@ -17,6 +18,8 @@ function payload(overrides: Record<string, unknown> = {}) {
 }
 
 describe('registration validation and idempotency', () => {
+  beforeEach(() => resetRateLimitsForTests());
+
   it('rejects invalid and undeclared fields without storing partial personal data', async () => {
     const db = new FakeDb();
     const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'not-email', extraSecret: 'hidden' }));
@@ -78,10 +81,25 @@ describe('registration validation and idempotency', () => {
 
   it('registers a military participant with their rank', async () => {
     const db = new FakeDb();
-    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'militar-ok@example.test', personnelType: 'militar', militaryRank: 'Coronel' }));
+    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'militar-ok@example.test', personnelType: 'militar', militaryRank: 'Coronel', serviceStatus: 'actividad' }));
     expect(response.status).toBe(201);
     const stored = [...db.participants.values()][0];
     expect(stored.personnel_type).toBe('militar');
     expect(stored.military_rank).toBe('Coronel');
+    expect(stored.service_status).toBe('actividad');
+  });
+
+  it('requires a serviceStatus when personnelType is militar', async () => {
+    const db = new FakeDb();
+    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'militar-nosit@example.test', personnelType: 'militar', militaryRank: 'Coronel' }));
+    expect(response.status).toBe(400);
+    expect(db.participants.size).toBe(0);
+  });
+
+  it('rejects a serviceStatus when personnelType is civil', async () => {
+    const db = new FakeDb();
+    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'civil-sit@example.test', personnelType: 'civil', serviceStatus: 'actividad' }));
+    expect(response.status).toBe(400);
+    expect(db.participants.size).toBe(0);
   });
 });

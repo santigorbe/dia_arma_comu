@@ -24,7 +24,8 @@ export async function registerParticipant(env: AppEnv, db: Queryable, input: Reg
         && existing.phone === (input.phone ?? null)
         && sameOrganization
         && existing.personnel_type === input.personnelType
-        && existing.military_rank === (input.militaryRank ?? null);
+        && existing.military_rank === (input.militaryRank ?? null)
+        && existing.service_status === (input.serviceStatus ?? null);
       if (!sameIdentity) {
         throw new AppError(409, 'participant_conflict');
       }

@@ -140,14 +140,14 @@ export class FakeDb implements Queryable {
       return result(this.publicMapPoints);
     }
 
-    if (text.includes('SELECT id, full_name, email, phone, unit_or_organization, personnel_type, military_rank FROM participants')) {
+    if (text.includes('SELECT id, full_name, email, phone, unit_or_organization, personnel_type, military_rank, service_status FROM participants')) {
       const found = this.participants.get(String(values[0]));
       return result(found ? [found] : []);
     }
 
     if (text.includes('INSERT INTO participants')) {
       const id = crypto.randomUUID();
-      const row = { id, full_name: values[0], email: values[1], phone: values[2], unit_or_organization: values[3], personnel_type: values[4], military_rank: values[5] };
+      const row = { id, full_name: values[0], email: values[1], phone: values[2], unit_or_organization: values[3], personnel_type: values[4], military_rank: values[5], service_status: values[6] };
       this.participants.set(String(values[1]), row);
       return result([{ id }]);
     }

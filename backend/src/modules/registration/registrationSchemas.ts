@@ -11,6 +11,7 @@ export const registrationRequestSchema = z
     unitOrOrganization: z.string().trim().max(120).optional(),
     personnelType: z.enum(['militar', 'civil']),
     militaryRank: z.string().trim().min(1).max(60).optional(),
+    serviceStatus: z.enum(['actividad', 'retiro']).optional(),
     consent: z.object({ accepted: z.literal(true), version: z.string().min(1).max(80) }).strict()
   })
   .strict()
@@ -20,6 +21,12 @@ export const registrationRequestSchema = z
     }
     if (value.personnelType === 'civil' && value.militaryRank !== undefined) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'militaryRank must not be provided when personnelType is civil', path: ['militaryRank'] });
+    }
+    if (value.personnelType === 'militar' && !value.serviceStatus) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'serviceStatus is required when personnelType is militar', path: ['serviceStatus'] });
+    }
+    if (value.personnelType === 'civil' && value.serviceStatus !== undefined) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'serviceStatus must not be provided when personnelType is civil', path: ['serviceStatus'] });
     }
   });
 

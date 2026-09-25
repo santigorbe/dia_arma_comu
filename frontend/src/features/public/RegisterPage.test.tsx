@@ -43,7 +43,7 @@ describe('RegisterPage', () => {
       return HttpResponse.json({ participantId: 'participant-1', status: 'registered', consentVersion: 'consent-local-placeholder' }, { status: 201 });
     }));
     renderPage();
-    expect(screen.queryByLabelText(/Unidad u organización/i)).toBeNull();
+    expect(screen.getByLabelText(/Unidad \/ Elemento/i)).toBeTruthy();
     await screen.findByRole('button', { name: /enviar registro/i });
     fillForm(true);
     fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
@@ -51,6 +51,24 @@ describe('RegisterPage', () => {
     expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
     expect(payload).not.toHaveProperty('unitOrOrganization');
     expect(payload).not.toHaveProperty('organization');
+  });
+
+  it('lets an attendee pick a listed unit or type one in when "Otra" is selected', async () => {
+    let payload: Record<string, unknown> | undefined;
+    server.use(http.post('/api/public/registrations', async ({ request }) => {
+      payload = await request.json() as Record<string, unknown>;
+      return HttpResponse.json({ participantId: 'participant-1', status: 'registered', consentVersion: 'consent-local-placeholder' }, { status: 201 });
+    }));
+    renderPage();
+    await screen.findByRole('button', { name: /enviar registro/i });
+    fillForm(true);
+    expect(screen.queryByLabelText(/Indique su unidad u organización/i)).toBeNull();
+    fireEvent.change(screen.getByLabelText(/Unidad \/ Elemento/i), { target: { value: '__otro__' } });
+    fireEvent.change(await screen.findByLabelText(/Indique su unidad u organización/i), { target: { value: 'Club de amigos del Arma' } });
+    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+
+    expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
+    expect(payload).toMatchObject({ unitOrOrganization: 'Club de amigos del Arma' });
   });
 
   it('defaults to civil personnel and omits militaryRank', async () => {
@@ -81,10 +99,21 @@ describe('RegisterPage', () => {
     fillForm(true);
     fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'militar' } });
     fireEvent.change(await screen.findByLabelText(/Grado/i), { target: { value: 'Coronel (CR)' } });
+    fireEvent.change(screen.getByLabelText(/Situación/i), { target: { value: 'actividad' } });
     fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
 
     expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
-    expect(payload).toMatchObject({ personnelType: 'militar', militaryRank: 'Coronel (CR)' });
+    expect(payload).toMatchObject({ personnelType: 'militar', militaryRank: 'Coronel (CR)', serviceStatus: 'actividad' });
+  });
+
+  it('hides Grado and Situación again after switching back to civil', async () => {
+    renderPage();
+    await screen.findByRole('button', { name: /enviar registro/i });
+    fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'militar' } });
+    expect(await screen.findByLabelText(/Situación/i)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'civil' } });
+    expect(screen.queryByLabelText(/Grado/i)).toBeNull();
+    expect(screen.queryByLabelText(/Situación/i)).toBeNull();
   });
 
   it('recovers from stale consent responses with the active version', async () => {
