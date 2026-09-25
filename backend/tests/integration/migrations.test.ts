@@ -15,7 +15,8 @@ describe('foundation migrations', () => {
       '0006_admin_content.sql',
       '0007_demo_map_points.sql',
        '0008_demo_schedule.sql',
-       '0009_correct_demo_map_points.sql'
+       '0009_correct_demo_map_points.sql',
+       '0010_participant_personnel_type.sql'
     ]);
     expect(migrations.every((migration) => migration.sql.trim().length > 0)).toBe(true);
   });
@@ -24,10 +25,10 @@ describe('foundation migrations', () => {
     const db = new FakeDb();
     const migrations = await loadMigrations();
 
-    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009']);
+    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010']);
     await expect(runMigrations(db, migrations)).resolves.toEqual([]);
 
-    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009']);
+    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010']);
   });
 
   it('seeds published fictional activities with stable IDs and preserves existing rows', async () => {

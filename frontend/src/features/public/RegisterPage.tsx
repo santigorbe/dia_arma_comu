@@ -2,6 +2,30 @@ import { FormEvent, useState } from 'react';
 import { apiRequest, type ApiError } from '../../lib/apiClient';
 import { useVisit } from '../visits/VisitProvider';
 
+const MILITARY_RANKS: Array<{ name: string; code: string }> = [
+  { name: 'Teniente General', code: 'TG' },
+  { name: 'General de División', code: 'GD' },
+  { name: 'General de Brigada', code: 'GB' },
+  { name: 'Coronel Mayor', code: 'CY' },
+  { name: 'Coronel', code: 'CR' },
+  { name: 'Teniente Coronel', code: 'TC' },
+  { name: 'Mayor', code: 'MY' },
+  { name: 'Capitán', code: 'CT' },
+  { name: 'Teniente Primero', code: 'TP' },
+  { name: 'Teniente', code: 'TT' },
+  { name: 'Subteniente', code: 'ST' },
+  { name: 'Suboficial Mayor', code: 'SM' },
+  { name: 'Suboficial Principal', code: 'SP' },
+  { name: 'Sargento Ayudante', code: 'SA' },
+  { name: 'Sargento Primero', code: 'SI' },
+  { name: 'Sargento', code: 'SG' },
+  { name: 'Cabo Primero', code: 'CI' },
+  { name: 'Cabo', code: 'CB' },
+  { name: 'Soldado Voluntario de 1ra', code: 'VP' },
+  { name: 'Soldado Voluntario de 2da', code: 'VS' },
+  { name: 'Soldado Voluntario "En Comisión"', code: 'VS "EC"' }
+];
+
 const activeConsentVersion = import.meta.env.VITE_ACTIVE_CONSENT_VERSION ?? 'consent-local-placeholder';
 const activeConsentText = import.meta.env.VITE_CONSENT_TEXT ?? 'Texto local de consentimiento no definitivo. Los operadores deben proporcionar la redacción aprobada del consentimiento antes de su uso en producción.';
 
@@ -15,6 +39,7 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
   const visit = useVisit();
   const [state, setState] = useState<RegistrationState>({ status: 'idle' });
   const [consentVersion, setConsentVersion] = useState(activeConsentVersion);
+  const [personnelType, setPersonnelType] = useState<'militar' | 'civil'>('civil');
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -41,11 +66,14 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           fullName: String(form.get('fullName') ?? ''),
           email: String(form.get('email') ?? ''),
           phone: optionalString(form.get('phone')),
+          personnelType,
+          militaryRank: personnelType === 'militar' ? optionalString(form.get('militaryRank')) : undefined,
           consent: { accepted: true, version: consentVersion }
         })
       });
       if (onSuccessfulRegistration) {
         formElement.reset();
+        setPersonnelType('civil');
         setState({ status: 'idle' });
         onSuccessfulRegistration();
         return;
@@ -92,6 +120,33 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           Teléfono
           <input name="phone" maxLength={40} />
         </label>
+        <label>
+          Personal
+          <select
+            name="personnelType"
+            required
+            value={personnelType}
+            onChange={(event) => setPersonnelType(event.target.value as 'militar' | 'civil')}
+          >
+            <option value="civil">Civil</option>
+            <option value="militar">Militar</option>
+          </select>
+        </label>
+        {personnelType === 'militar' && (
+          <label>
+            Grado
+            <select name="militaryRank" required defaultValue="">
+              <option value="" disabled>
+                Seleccione un grado
+              </option>
+              {MILITARY_RANKS.map((rank) => (
+                <option key={rank.code} value={`${rank.name} (${rank.code})`}>
+                  {rank.name} ({rank.code})
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <section className="consent-panel">
           <h2>Versión del consentimiento {consentVersion}</h2>
           <p>{activeConsentText}</p>

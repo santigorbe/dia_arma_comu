@@ -10,6 +10,7 @@ const registration = {
   visitId: '550e8400-e29b-41d4-a716-446655440000',
   fullName: 'Participant Name',
   email: 'person@example.test',
+  personnelType: 'civil' as const,
   consent: { accepted: true as const, version: 'consent-2026-09' }
 };
 

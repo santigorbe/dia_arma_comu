@@ -10,6 +10,7 @@ function payload(overrides: Record<string, unknown> = {}) {
     visitId: '550e8400-e29b-41d4-a716-446655440000',
     fullName: 'Participant Name',
     email: 'person@example.test',
+    personnelType: 'civil',
     consent: { accepted: true, version: 'consent-2026-09' },
     ...overrides
   };
@@ -59,5 +60,28 @@ describe('registration validation and idempotency', () => {
     const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ fullName: "Robert'); DROP TABLE participants;--" }));
     expect(response.status).toBe(201);
     expect(db.statements.some((statement) => statement.includes('DROP TABLE participants;--'))).toBe(false);
+  });
+
+  it('requires a militaryRank when personnelType is militar', async () => {
+    const db = new FakeDb();
+    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'militar@example.test', personnelType: 'militar' }));
+    expect(response.status).toBe(400);
+    expect(db.participants.size).toBe(0);
+  });
+
+  it('rejects a militaryRank when personnelType is civil', async () => {
+    const db = new FakeDb();
+    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'civil@example.test', personnelType: 'civil', militaryRank: 'Coronel' }));
+    expect(response.status).toBe(400);
+    expect(db.participants.size).toBe(0);
+  });
+
+  it('registers a military participant with their rank', async () => {
+    const db = new FakeDb();
+    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'militar-ok@example.test', personnelType: 'militar', militaryRank: 'Coronel' }));
+    expect(response.status).toBe(201);
+    const stored = [...db.participants.values()][0];
+    expect(stored.personnel_type).toBe('militar');
+    expect(stored.military_rank).toBe('Coronel');
   });
 });
