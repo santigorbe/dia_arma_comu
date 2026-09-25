@@ -94,6 +94,9 @@ describe('Public event experience', () => {
     const navigation = screen.getByRole('navigation', { name: 'Navegación móvil' });
     const controls = navigation.querySelectorAll('a, button');
     expect(controls).toHaveLength(4);
+    expect(within(navigation).getByRole('link', { name: 'Inicio' }).getAttribute('href')).toBe('/');
+    expect(within(navigation).getByRole('link', { name: 'Cronograma' }).getAttribute('href')).toBe('/cronograma');
+    expect(within(navigation).getByRole('link', { name: 'Mapa' }).getAttribute('href')).toBe('/mapa');
     for (const [index, label] of ['Inicio', 'Cronograma', 'Mapa', 'Registrarse'].entries()) {
       const control = within(navigation).getByRole(index === 3 ? 'button' : 'link', { name: label });
       expect(control.firstElementChild?.tagName.toLowerCase()).toBe('svg');

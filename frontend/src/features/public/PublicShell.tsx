@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faCalendarCheck, faLocationDot } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faCalendarCheck, faHouse, faLocationDot, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { RegistrationModal } from './RegistrationModal';
 
@@ -58,7 +58,12 @@ export function PublicShell() {
       </nav>
     </header>
     <main id="main-content" className="public-main"><Outlet context={{ openRegistration } satisfies PublicShellContext} /></main>
-    <nav className="mobile-nav" aria-label="Navegación móvil"><NavLink to="/" end>Inicio</NavLink><NavLink to="/cronograma"><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /> Cronograma</NavLink><NavLink to="/mapa"><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> Mapa</NavLink><button onClick={(event) => openRegistration(event.currentTarget)}>Registrarse</button></nav>
+    <nav className="mobile-nav" aria-label="Navegación móvil">
+      <NavLink to="/" end><FontAwesomeIcon icon={faHouse} aria-hidden="true" /><span>Inicio</span></NavLink>
+      <NavLink to="/cronograma"><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /><span>Cronograma</span></NavLink>
+      <NavLink to="/mapa"><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /><span>Mapa</span></NavLink>
+      <button onClick={(event) => openRegistration(event.currentTarget)}><FontAwesomeIcon icon={faUserPlus} aria-hidden="true" /><span>Registrarse</span></button>
+    </nav>
     <footer className="site-footer">Información del evento · El contenido es publicado por los operadores del evento.</footer>
     <RegistrationModal open={registrationOpen && !isRegistrationPage} onClose={closeRegistration} returnFocusRef={registrationOpener} />
   </div>;

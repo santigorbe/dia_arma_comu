@@ -4,7 +4,7 @@
 Publish clearly fictional demo activities, offer registration on first visit, simplify the public form, and align all four mobile navigation controls without redesigning the interface.
 
 ## Route and Authorization
-- Route: delegated single bounded writer; trigger: multiple nontrivial files across migrations, registration, and shared navigation. No further delegation.
+- Route: delegated direct; trigger: markup and styles. No further delegation.
 - Authorized: local source/tests, migration 0008, this tracker, and conventional work-unit commits on the existing feature branch.
 - Prohibited: remote operations, push/PR, Docker rebuild, SDD, review workflows, new assets or browser tooling.
 - Preserve operator content, optional backend organization compatibility, Spanish UI, error/empty states, existing fonts and dark/brass tokens.
@@ -13,7 +13,7 @@ Publish clearly fictional demo activities, offer registration on first visit, si
 - [x] PSRN-01 — Add duplicate-safe published fictional schedule migration and migration-list regression coverage; remove redundant schedule preview.
 - [x] PSRN-02 — Auto-open registration on first visit, persist dismissal, support manual reopening and unavailable storage, and avoid standalone-route duplication.
 - [x] PSRN-03 — Remove organization from public form/payload while retaining optional backend compatibility and existing stored values.
-- [ ] PSRN-04 — Align all four bottom-nav icons above centered labels with existing FontAwesome, tokens, focus and touch targets.
+- [x] PSRN-04 — Align all four bottom-nav icons above centered labels with existing FontAwesome, tokens, focus and touch targets.
 
 ## Checks and Delivery
 - TDD: effective Standard Mode, strict off; source: `odd/tasks/pnpm-11-mobile-public-ui.md`; Vitest via `pnpm test`.
@@ -38,3 +38,8 @@ Publish clearly fictional demo activities, offer registration on first visit, si
 - Narrow VisitProvider fallback added because denied storage otherwise disabled registration. API failures retain the existing error state. Without storage, persistence across full reloads is unavailable by design.
 - Unrelated `odd/tasks/smooth-ui-motion.md` appeared during execution and is preserved unstaged.
 - PSRN-04 implementation and final verification pending.
+- PSRN-04 route updated before implementation: delegated direct for the bounded mobile-navigation markup and styles change. Existing focused icon/label structural regression remains pending execution.
+- PSRN-04 red result: `cd frontend && pnpm test -- PublicExperience.test.tsx` failed exactly 1 test of 20 because the mobile `Inicio` control had no SVG child. The test already covers the four accessible controls, decorative SVG icons, and visible label spans.
+- PSRN-04 green result: focused `cd frontend && pnpm test -- PublicExperience.test.tsx` passed 4 files / 20 tests. Final `pnpm test` passed 4 files / 20 tests; `pnpm lint` passed; `pnpm build` passed (Vite 6.4.3, 93 modules).
+- PSRN-04 implementation: the four mobile controls now use semantic FontAwesome icons (`house`, `calendar-check`, `location-dot`, `user-plus`) followed by visible Spanish label spans. Existing CSS tokens provide equal columns, centered icon-over-label content, 72px minimum targets, active indicator, and visible keyboard focus. Desktop navigation is unchanged.
+- PSRN-04 rollback boundary: revert only `frontend/src/features/public/PublicShell.tsx`, the `.mobile-nav` rule in `frontend/src/styles/index.css`, its structural assertions in `frontend/src/features/public/PublicExperience.test.tsx`, and this evidence. Commit identity will be recorded after the work-unit commit is created.
