@@ -8,6 +8,7 @@ export class FakeDb implements Queryable {
   readonly visits = new Set<string>();
   readonly idempotency = new Map<string, { response_status: number; response_body: unknown }>();
   readonly participants = new Map<string, Record<string, unknown>>();
+  readonly communicationJobs: Array<{ recipient_ref: string; idempotency_key: string }> = [];
   readonly audits: Record<string, unknown>[] = [];
   readonly admins = new Map<string, { id: string; password_hash: string; is_active: boolean }>();
   readonly invalidatedAdminTokens = new Set<string>();
@@ -150,6 +151,15 @@ export class FakeDb implements Queryable {
     }
 
     if (text.includes('INSERT INTO registration_consents')) {
+      return result([]);
+    }
+
+    if (text.includes('INSERT INTO communication_jobs')) {
+      const recipientRef = String(values[1]);
+      const idempotencyKey = String(values[4]);
+      if (!this.communicationJobs.some((job) => job.idempotency_key === idempotencyKey)) {
+        this.communicationJobs.push({ recipient_ref: recipientRef, idempotency_key: idempotencyKey });
+      }
       return result([]);
     }
 

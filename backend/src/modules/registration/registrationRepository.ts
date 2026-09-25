@@ -43,3 +43,12 @@ export async function createParticipantRegistration(db: Queryable, input: Regist
   );
   return participantId;
 }
+
+export async function enqueueRegistrationEmail(db: Queryable, recipientRef: string, registrationIdempotencyKey: string) {
+  await db.query(
+    `INSERT INTO communication_jobs (channel, recipient_ref, message_key, message_version, idempotency_key)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (channel, recipient_ref, message_key, message_version, idempotency_key) DO NOTHING`,
+    ['email', recipientRef, 'registration-confirmation', 'v1', `registration-email:${registrationIdempotencyKey}`]
+  );
+}

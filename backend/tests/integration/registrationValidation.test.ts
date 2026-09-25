@@ -24,14 +24,25 @@ describe('registration validation and idempotency', () => {
     expect(JSON.stringify(response.body)).not.toMatch(/hidden|person@example|Participant/i);
   });
 
-  it('replays an accepted request idempotently without duplicate participants', async () => {
+  it('queues one email job for each accepted idempotency key and none for an exact replay', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
     const first = await request(app).post('/api/public/registrations').send(payload());
     const second = await request(app).post('/api/public/registrations').send(payload());
+    const repeat = await request(app).post('/api/public/registrations').send(payload({ requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440004' }));
+
     expect(first.status).toBe(201);
     expect(second.body).toEqual(first.body);
+    expect(repeat.status).toBe(201);
+    expect(repeat.body.participantId).toBe(first.body.participantId);
     expect(db.participants.size).toBe(1);
+    expect(db.communicationJobs).toEqual([
+      { recipient_ref: 'person@example.test', idempotency_key: 'registration-email:550e8400-e29b-41d4-a716-446655440002' },
+      { recipient_ref: 'person@example.test', idempotency_key: 'registration-email:550e8400-e29b-41d4-a716-446655440004' }
+    ]);
+    expect(db.statements.filter((statement) => statement.includes('INSERT INTO communication_jobs'))).toHaveLength(2);
+    expect(db.statements.filter((statement) => statement === 'BEGIN')).toHaveLength(2);
+    expect(db.statements.filter((statement) => statement === 'COMMIT')).toHaveLength(2);
   });
 
   it('returns a conflict for existing participants with different data', async () => {
