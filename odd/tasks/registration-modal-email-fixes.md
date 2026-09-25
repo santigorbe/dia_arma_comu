@@ -32,7 +32,7 @@ Make embedded registration reliably usable above the event map and provide async
 - [x] **RMF-02 — Embedded success lifecycle**: Added the optional successful-registration callback path so embedded registration resets the submitted form, closes the shell-owned modal, and announces success accessibly; standalone `/register` retains its in-page success feedback.
 - [x] **RMF-03 — Outbox worker and Resend adapter**: Implemented safe due-job claiming, delivery-time published-schedule rendering, attempt/state/retry recording, and simulated/real Resend provider adapters.
 - [x] **RMF-04 — Configuration and regression coverage**: Added focused frontend/backend coverage plus Compose and README real-mode wiring without secrets.
-- [ ] **RMF-05 — Verification and commit**: Run normalization if configured, required focused tests and lint, record exact results and rollback boundary, then commit only this work unit with a Conventional Commit.
+- [x] **RMF-05 — Verification and commit**: Ran required focused tests and lint, recorded the rollback boundary, and committed the implementation work unit with a Conventional Commit.
 
 ## Per-Task Route / Trigger Record
 
@@ -55,7 +55,7 @@ Make embedded registration reliably usable above the event map and provide async
 
 ## Progress
 
-`RMF-01 through RMF-04 complete; RMF-05 is in progress for commit recording.` Existing work is linked at `registration-resend-email.md`: RRE-01 is committed in `53517f1`; this work completes the relevant RRE-02 through RRE-04 implementation without changing that tracker. RRE-05 remains prohibited.
+`RMF-01 through RMF-05 complete.` Existing work is linked at `registration-resend-email.md`: RRE-01 is committed in `53517f1`; implementation commit `c335377` completes the relevant RRE-02 through RRE-04 work without changing that tracker's scope. RRE-05 remains prohibited.
 
 ## Verification Evidence
 
@@ -66,13 +66,13 @@ Make embedded registration reliably usable above the event map and provide async
 - `pnpm --filter @communications-day/frontend run lint` — passed (`tsc -p tsconfig.json --noEmit`).
 - `pnpm --filter @communications-day/backend run lint` — passed (`tsc -p tsconfig.json --noEmit`).
 - Runtime worker scenario: deterministic FakeDb provider tests cover claim, delivery-time schedule lookup, simulated delivery, provider failure/retry, and no-job behavior; no Resend network call was made.
-- Rollback boundary: pending commit; remove the modal success lifecycle, communications worker/provider/template, Compose worker wiring, and associated tests/docs without touching pre-existing changes.
+- Rollback boundary: revert `c335377` to remove the modal success lifecycle, communications worker/provider/template, Compose worker wiring, and associated tests/docs without touching pre-existing changes.
 
 ## Commit Identity
 
 - Branch: `feature/public-event-experience`.
-- Commit: pending.
+- Implementation commit: `c335377 feat(registration): deliver confirmation outbox jobs`.
 
 ## Next Step
 
-Review the staged work-unit diff, commit only authored files, then record the hash and final verification evidence here and in the Engram mirror.
+RRE-05 remains a separate, explicitly authorized hold point for any live Resend delivery.
