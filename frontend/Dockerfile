@@ -8,6 +8,8 @@ FROM deps AS build
 COPY frontend frontend
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ARG VITE_MAP_TILE_URL
+ENV VITE_MAP_TILE_URL=$VITE_MAP_TILE_URL
 RUN pnpm --filter @communications-day/frontend run build
 
 FROM node:22-alpine

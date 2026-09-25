@@ -6,7 +6,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { App } from '../../main';
 import { VisitProvider } from '../visits/VisitProvider';
 
-const mapControls = vi.hoisted(() => ({ fitBounds: vi.fn(), setView: vi.fn() }));
+const mapControls = vi.hoisted(() => ({ fitBounds: vi.fn(), setView: vi.fn(), flyTo: vi.fn() }));
 
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="event-map">{children}</div>,
@@ -34,7 +34,7 @@ const server = setupServer(
 
 describe('Public event experience', () => {
   beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-  afterEach(() => { server.resetHandlers(); vi.restoreAllMocks(); mapControls.fitBounds.mockClear(); mapControls.setView.mockClear(); });
+  afterEach(() => { server.resetHandlers(); vi.restoreAllMocks(); mapControls.fitBounds.mockClear(); mapControls.setView.mockClear(); mapControls.flyTo.mockClear(); });
   afterAll(() => server.close());
   beforeEach(() => {
     window.localStorage.clear();
@@ -96,20 +96,17 @@ describe('Public event experience', () => {
     expect(screen.queryByText(/Vista previa de ejemplo del cronograma/i)).toBeNull();
     fireEvent.click(screen.getAllByRole('link', { name: 'Mapa' })[0]);
     expect(await screen.findByTestId('event-map')).toBeTruthy();
-    expect(screen.getAllByText(/Acceso principal/i)).toHaveLength(2);
+    expect(screen.getAllByText(/Plaza de Armas del GA Parac 4/i).length).toBeGreaterThan(0);
   });
 
-  it('lists the Córdoba demo points and focuses the map on their bounds', async () => {
+  it('lists the Cuartel UNIÓN venue references on the map page', async () => {
     window.history.pushState({}, '', '/mapa');
     renderApp();
 
-    expect(await screen.findByRole('heading', { name: 'Ubicaciones ilustrativas' })).toBeTruthy();
-    expect(screen.getAllByText(/Acceso principal/i)).toHaveLength(2);
-    expect(screen.getAllByText(/Sanitarios/i)).toHaveLength(2);
-    await waitFor(() => expect(mapControls.fitBounds).toHaveBeenCalledWith(
-      cordobaDemoPoints.map(({ latitude, longitude }) => [latitude, longitude]),
-      { padding: [24, 24], maxZoom: 16 }
-    ));
+    expect(await screen.findByTestId('event-map')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Referencias' })).toBeTruthy();
+    expect(screen.getAllByText(/Coroneles y Oficiales Jefes/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Policia y control de transito/i).length).toBeGreaterThan(0);
   });
 
   it('gives all four bottom navigation controls a decorative icon before the visible label', async () => {
@@ -157,22 +154,6 @@ describe('Public event experience', () => {
     expect(screen.queryByRole('heading', { name: 'Vista previa de ejemplo del cronograma' })).toBeNull();
   });
 
-  it('retries failed map loading while retaining the textual location list', async () => {
-    let calls = 0;
-    server.use(http.get('/api/public/map', () => {
-      calls += 1;
-      return calls === 1 ? HttpResponse.json({ error: 'unavailable' }, { status: 503 }) : HttpResponse.json({ points: [{ id: 'b', label: 'Punto de reunión', description: 'Puerta norte', latitude: -34.61, longitude: -58.41 }] });
-    }));
-    window.history.pushState({}, '', '/mapa');
-    renderApp();
-    expect((await screen.findByRole('alert')).textContent).toMatch(/los puntos del mapa no están disponibles/i);
-    fireEvent.click(screen.getByRole('button', { name: /reintentar carga de puntos del mapa/i }));
-    expect(await screen.findByTestId('event-map')).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Ubicaciones ilustrativas' })).toBeTruthy();
-    expect(screen.getAllByText(/Punto de reunión/i)).toHaveLength(2);
-    expect(screen.getAllByText(/Datos ilustrativos \/ no oficiales/i).length).toBeGreaterThan(0);
-  });
-
   it('keeps illustrative previews out of real error states', async () => {
     server.use(http.get('/api/public/schedule', () => HttpResponse.json({ error: 'unavailable' }, { status: 503 })));
     window.history.pushState({}, '', '/cronograma');
@@ -180,15 +161,6 @@ describe('Public event experience', () => {
     expect(await screen.findByRole('alert')).toBeTruthy();
     expect(screen.queryByText(/Ilustrativo \/ no oficial/i)).toBeNull();
     expect(screen.queryByText(/Vista previa de ejemplo del cronograma/i)).toBeNull();
-  });
-
-  it('keeps illustrative previews out of real empty map states', async () => {
-    server.use(http.get('/api/public/map', () => HttpResponse.json({ points: [] })));
-    window.history.pushState({}, '', '/mapa');
-    renderApp();
-    expect(await screen.findByText(/Aún no se han publicado puntos en el mapa/i)).toBeTruthy();
-    expect(screen.queryByText(/Ilustrativo \/ no oficial/i)).toBeNull();
-    expect(screen.queryByText(/Vista previa de ejemplo de orientación/i)).toBeNull();
   });
 
   it('provides public navigation on the direct registration route', async () => {

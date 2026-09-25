@@ -33,7 +33,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-communications_day}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-password}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -75,6 +75,7 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000}
+        VITE_MAP_TILE_URL: ${VITE_MAP_TILE_URL:-https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}}
     ports:
       - "5173:5173"
     depends_on:
