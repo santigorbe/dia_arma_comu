@@ -13,6 +13,7 @@ export function PublicShell() {
   const isRegistrationPage = pathname.replace(/\/+$/, '') === '/register';
   const [menuOpen, setMenuOpen] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const registrationPrompted = useRef(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const registrationOpener = useRef<HTMLElement | null>(null);
@@ -44,6 +45,10 @@ export function PublicShell() {
     registrationOpener.current = opener ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     setRegistrationOpen(true);
   }, [isRegistrationPage]);
+  const completeRegistration = useCallback(() => {
+    setRegistrationOpen(false);
+    setRegistrationSuccess(true);
+  }, []);
 
   return <div className="public-app">
     <a className="skip-link" href="#main-content">Ir al contenido principal</a>
@@ -58,6 +63,7 @@ export function PublicShell() {
       </nav>
     </header>
     <main id="main-content" className="public-main"><Outlet context={{ openRegistration } satisfies PublicShellContext} /></main>
+    {registrationSuccess && <div className="registration-success-popup" role="status" aria-live="polite">El registro fue aceptado. Recibirá la confirmación por correo electrónico.</div>}
     <nav className="mobile-nav" aria-label="Navegación móvil">
       <NavLink to="/" end><FontAwesomeIcon icon={faHouse} aria-hidden="true" /><span>Inicio</span></NavLink>
       <NavLink to="/cronograma"><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /><span>Cronograma</span></NavLink>
@@ -65,6 +71,6 @@ export function PublicShell() {
       <button onClick={(event) => openRegistration(event.currentTarget)}><FontAwesomeIcon icon={faUserPlus} aria-hidden="true" /><span>Registrarse</span></button>
     </nav>
     <footer className="site-footer">Información del evento · El contenido es publicado por los operadores del evento.</footer>
-    <RegistrationModal open={registrationOpen && !isRegistrationPage} onClose={closeRegistration} returnFocusRef={registrationOpener} />
+    <RegistrationModal open={registrationOpen && !isRegistrationPage} onClose={closeRegistration} onSuccessfulRegistration={completeRegistration} returnFocusRef={registrationOpener} />
   </div>;
 }

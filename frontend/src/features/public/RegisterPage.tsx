@@ -11,19 +11,20 @@ type RegistrationState =
   | { status: 'success'; participantId: string }
   | { status: 'error' | 'conflict' | 'stale_consent'; message: string; activeConsentVersion?: string };
 
-export function RegisterPage({ embedded = false }: { embedded?: boolean }) {
+export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { embedded?: boolean; onSuccessfulRegistration?: () => void }) {
   const visit = useVisit();
   const [state, setState] = useState<RegistrationState>({ status: 'idle' });
   const [consentVersion, setConsentVersion] = useState(activeConsentVersion);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     if (!visit.visitId) {
       setState({ status: 'error', message: 'La visita anónima debe inicializarse antes del registro.' });
       return;
     }
 
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     const accepted = form.get('consent') === 'on';
     if (!accepted) {
       setState({ status: 'error', message: 'El consentimiento es obligatorio antes del registro.' });
@@ -43,6 +44,12 @@ export function RegisterPage({ embedded = false }: { embedded?: boolean }) {
           consent: { accepted: true, version: consentVersion }
         })
       });
+      if (onSuccessfulRegistration) {
+        formElement.reset();
+        setState({ status: 'idle' });
+        onSuccessfulRegistration();
+        return;
+      }
       setState({ status: 'success', participantId: response.participantId });
     } catch (error) {
       if (!navigator.onLine) {

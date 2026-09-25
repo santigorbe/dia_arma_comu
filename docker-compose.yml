@@ -18,6 +18,8 @@ services:
       ACTIVE_CONSENT_VERSION: ${ACTIVE_CONSENT_VERSION:-consent-local-placeholder}
       CONSENT_TEXT: ${CONSENT_TEXT:-Texto local de consentimiento no definitivo.}
       EMAIL_PROVIDER_MODE: ${EMAIL_PROVIDER_MODE:-simulation}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
       WHATSAPP_PROVIDER_MODE: ${WHATSAPP_PROVIDER_MODE:-simulation}
       MAP_TILE_URL: ${MAP_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
     depends_on:
@@ -55,6 +57,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["node", "backend/dist/src/scripts/runCommunicationWorker.js"]
+    environment: *backend-environment
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
 
   frontend:
     build:

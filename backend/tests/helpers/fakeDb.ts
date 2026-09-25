@@ -9,6 +9,8 @@ export class FakeDb implements Queryable {
   readonly idempotency = new Map<string, { response_status: number; response_body: unknown }>();
   readonly participants = new Map<string, Record<string, unknown>>();
   readonly communicationJobs: Array<{ recipient_ref: string; idempotency_key: string }> = [];
+  readonly outboxJobs: Array<{ id: string; recipient_ref: string; state: string; attempts: number; idempotency_key: string; last_error_code: string | null }> = [];
+  readonly communicationAttempts: Array<{ job_id: string; attempt_number: number; provider_mode: string; outcome: string; sanitized_summary: string }> = [];
   readonly audits: Record<string, unknown>[] = [];
   readonly admins = new Map<string, { id: string; password_hash: string; is_active: boolean }>();
   readonly invalidatedAdminTokens = new Set<string>();
@@ -159,6 +161,44 @@ export class FakeDb implements Queryable {
       const idempotencyKey = String(values[4]);
       if (!this.communicationJobs.some((job) => job.idempotency_key === idempotencyKey)) {
         this.communicationJobs.push({ recipient_ref: recipientRef, idempotency_key: idempotencyKey });
+        this.outboxJobs.push({ id: `job-${this.outboxJobs.length + 1}`, recipient_ref: recipientRef, state: 'pending', attempts: 0, idempotency_key: idempotencyKey, last_error_code: null });
+      }
+      return result([]);
+    }
+
+    if (text.includes('WITH candidate AS') && text.includes('UPDATE communication_jobs AS job')) {
+      const job = this.outboxJobs.find((candidate) => candidate.state === 'pending' || candidate.state === 'retryable_failed');
+      if (!job) return result([]);
+      job.state = 'processing';
+      job.attempts += 1;
+      return result([job]);
+    }
+
+    if (text.includes('INSERT INTO communication_attempts')) {
+      this.communicationAttempts.push({
+        job_id: String(values[0]),
+        attempt_number: Number(values[1]),
+        provider_mode: String(values[2]),
+        outcome: String(values[3]),
+        sanitized_summary: String(values[4])
+      });
+      return result([]);
+    }
+
+    if (text.includes('UPDATE communication_jobs SET state = $1')) {
+      const job = this.outboxJobs.find((candidate) => candidate.id === String(values[2]));
+      if (job) {
+        job.state = String(values[0]);
+        job.last_error_code = null;
+      }
+      return result([]);
+    }
+
+    if (text.includes('UPDATE communication_jobs\n     SET state = $1')) {
+      const job = this.outboxJobs.find((candidate) => candidate.id === String(values[3]));
+      if (job) {
+        job.state = String(values[0]);
+        job.last_error_code = String(values[1]);
       }
       return result([]);
     }

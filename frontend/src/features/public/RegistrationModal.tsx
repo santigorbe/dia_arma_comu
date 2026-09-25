@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { RegisterPage } from './RegisterPage';
 
-export function RegistrationModal({ open, onClose, returnFocusRef }: { open: boolean; onClose: () => void; returnFocusRef: React.RefObject<HTMLElement | null> }) {
+export function RegistrationModal({ open, onClose, onSuccessfulRegistration, returnFocusRef }: { open: boolean; onClose: () => void; onSuccessfulRegistration: () => void; returnFocusRef: React.RefObject<HTMLElement | null> }) {
   const dialog = useRef<HTMLElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -32,7 +32,7 @@ export function RegistrationModal({ open, onClose, returnFocusRef }: { open: boo
   return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
     <section ref={dialog} className="registration-modal" role="dialog" aria-modal="true" aria-labelledby="registration-title" onMouseDown={(event) => event.stopPropagation()}>
       <button ref={closeButton} className="modal-close" onClick={onClose} aria-label="Cerrar registro">×</button>
-      <RegisterPage embedded />
+      <RegisterPage embedded onSuccessfulRegistration={onSuccessfulRegistration} />
     </section>
   </div>;
 }
