@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import L from 'leaflet';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDoorOpen, faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import 'leaflet/dist/leaflet.css';
 
 const VENUE_CENTER: [number, number] = [-31.37241553150134, -64.29318416760644];
@@ -127,6 +129,21 @@ export function MapPage() {
           </ul>
         </aside>
       </div>
+      <section className="access-section" aria-labelledby="access-title">
+        <h2 id="access-title" className="subsection-title">Cómo llegar / Accesos</h2>
+        <p className="access-address"><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> Camino de la Calera Km 9 — Cuartel Unión, Córdoba.</p>
+        <div className="access-grid">
+          <article className="access-card">
+            <h3><FontAwesomeIcon icon={faDoorOpen} aria-hidden="true" /> Invitados especiales</h3>
+            <p>Ingresan por el Puesto de Guardia del Grupo de Artillería Paracaidista 4.</p>
+          </article>
+          <article className="access-card">
+            <h3><FontAwesomeIcon icon={faDoorOpen} aria-hidden="true" /> Resto del personal e invitados</h3>
+            <p>Ingresan por el Punto de Acceso del Batallón de Comunicaciones 141.</p>
+          </article>
+        </div>
+        <p className="access-note">Referencia: ANEXO 4 de la Orden Especial 02/G/26 del Consejo Superior del Arma de Comunicaciones.</p>
+      </section>
     </section>
   );
 }
