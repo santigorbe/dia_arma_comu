@@ -35,7 +35,7 @@ Present truthful, accessible registration validation feedback. The backend curre
 
 - [x] **RVF-01 — Backend detail contract**: Added a safe, deterministic `{field, code}` projection for registration validation details while preserving existing API behavior and status codes and exposing no PII.
 - [x] **RVF-02 — Frontend field feedback and accessibility**: Consumed allowlisted validation details, rendered neutral Spanish per-field messages and visible invalid states, applied `aria-invalid` and `aria-describedby`, focused the first invalid field, handled conditional fields, and added truthful fallback copy when details are absent or unusable.
-- [ ] **RVF-03 — Tests, verification, and commit evidence**: Add focused backend/frontend regression tests, run the exact focused and lint checks, and record verification, rollback, affected-file, and Conventional Commit evidence.
+- [x] **RVF-03 — Tests, verification, and commit evidence**: Added focused backend/frontend regression tests, ran the exact focused and lint checks, and recorded verification, rollback, affected-file, and Conventional Commit evidence.
 
 ## Per-Task Route / Trigger Record
 
@@ -43,7 +43,7 @@ Present truthful, accessible registration validation feedback. The backend curre
 |---|---|---|---|---|
 | RVF-01 | Delegated writer | Fired: coordinated backend/frontend/test work is non-trivial and expected to exceed two files. | Fired and completed in the authorized implementation phase. | Safe deterministic backend projection and focused tests only; preserve API behavior/status and expose no PII. |
 | RVF-02 | Delegated writer | Fired: coordinated backend/frontend/test work is non-trivial and expected to exceed two files. | Fired and completed in the authorized implementation phase. | Field feedback and accessibility only; no unrelated visual redesign. |
-| RVF-03 | Delegated writer | Fired: coordinated backend/frontend/test verification and evidence span more than two files. | Fired; tests and lint are complete, with commit evidence pending. | Deterministic local tests, lint, and one local work-unit commit only; no `.env`, live Resend, push, or PR. |
+| RVF-03 | Delegated writer | Fired: coordinated backend/frontend/test verification and evidence span more than two files. | Fired and completed in the authorized implementation phase. | Deterministic local tests, lint, and one local work-unit commit only; no `.env`, live Resend, push, or PR. |
 
 ## Acceptance Criteria
 
@@ -68,7 +68,7 @@ pnpm --filter @communications-day/frontend run lint
 
 ## Progress
 
-`RVF-01 and RVF-02 complete; RVF-03 verification complete with commit evidence pending.` Registration validation uses a route-scoped allowlist, and the frontend renders accessible field feedback or truthful fallback copy. All four planned checks pass. No environment, provider, live registration, remote, push, or pull-request operation was performed.
+`RVF-01 through RVF-03 complete.` Registration validation uses a route-scoped allowlist, and the frontend renders accessible field feedback or truthful fallback copy. All four planned checks pass, and implementation commit `ab2aaf6` contains the coherent work unit. No environment, provider, live registration, remote, push, or pull-request operation was performed.
 
 ## RVF-01 Evidence
 
@@ -87,10 +87,10 @@ pnpm --filter @communications-day/frontend run lint
 - `pnpm --filter @communications-day/backend run lint` — passed (`tsc -p tsconfig.json --noEmit`).
 - `pnpm --filter @communications-day/frontend run lint` — passed (`tsc -p tsconfig.json --noEmit`).
 - Runtime scenario: N/A. Focused HTTP integration and rendered component tests cover the changed boundary deterministically; a live registration or Resend operation was neither needed nor authorized.
-- Rollback boundary: revert the forthcoming `fix(registration): show field validation feedback` work-unit commit to remove the registration-specific detail allowlist, frontend field feedback/accessibility behavior, focused regression coverage, minimal invalid-state CSS, and this tracker without affecting unrelated registration behavior.
+- Rollback boundary: revert `ab2aaf6` to remove the registration-specific detail allowlist, frontend field feedback/accessibility behavior, focused regression coverage, minimal invalid-state CSS, and this tracker without affecting unrelated registration behavior.
 - Affected files: `backend/src/shared/http/errors.ts`, `backend/src/shared/http/validation.ts`, `backend/src/modules/registration/registrationSchemas.ts`, `backend/src/modules/registration/registrationRoutes.ts`, `backend/tests/integration/errors.test.ts`, `backend/tests/integration/registrationValidation.test.ts`, `frontend/src/features/public/RegisterPage.tsx`, `frontend/src/features/public/RegisterPage.test.tsx`, `frontend/src/styles/index.css`, and `odd/tasks/registration-validation-feedback.md`.
-- Work-unit commit: pending creation; its identity will be recorded in a tracker-only follow-up commit because a commit cannot self-reference.
+- Work-unit commit: `ab2aaf6 fix(registration): show field validation feedback`.
 
 ## Next Step
 
-Create the authorized work-unit commit, record its identity in a tracker-only follow-up commit, mirror the completed tracker, and defer native review to the parent.
+The parent handles native review against implementation commit `ab2aaf6`. No push or pull request is authorized.
