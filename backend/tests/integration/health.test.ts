@@ -52,12 +52,11 @@ describe('foundation health checks', () => {
   });
 
   it('keeps real provider readiness gated by complete configuration', () => {
-    expect(() => loadEnv({ ...baseEnv, EMAIL_PROVIDER_MODE: 'real', RESEND_API_KEY: '', RESEND_FROM_EMAIL: '' })).toThrow(/RESEND_API_KEY/);
+    expect(() => loadEnv({ ...baseEnv, EMAIL_PROVIDER_MODE: 'real', BREVO_API_KEY: '', BREVO_FROM_EMAIL: '' })).toThrow(/BREVO_API_KEY/);
     expect(() => loadEnv({ ...baseEnv, WHATSAPP_PROVIDER_MODE: 'real', WHATSAPP_API_URL: '', WHATSAPP_ACCESS_TOKEN: '' })).toThrow(/WHATSAPP_API_URL/);
   });
 
-  it('requires a production Resend sender other than the test-only sender', () => {
-    expect(() => loadEnv({ ...baseEnv, NODE_ENV: 'production', AUTH_COOKIE_SECURE: 'true', EMAIL_PROVIDER_MODE: 'real', RESEND_API_KEY: 'test-key', RESEND_FROM_EMAIL: 'onboarding@resend.dev' })).toThrow(/operator-verified sender domain/);
-    expect(() => loadEnv({ ...baseEnv, NODE_ENV: 'production', AUTH_COOKIE_SECURE: 'true', EMAIL_PROVIDER_MODE: 'real', RESEND_API_KEY: 'test-key', RESEND_FROM_EMAIL: 'events@example.test' })).not.toThrow();
+  it('accepts a configured production Brevo sender for operator verification', () => {
+    expect(() => loadEnv({ ...baseEnv, NODE_ENV: 'production', AUTH_COOKIE_SECURE: 'true', EMAIL_PROVIDER_MODE: 'real', BREVO_API_KEY: 'test-key', BREVO_FROM_EMAIL: 'events@example.test' })).not.toThrow();
   });
 });

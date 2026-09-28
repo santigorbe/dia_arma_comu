@@ -22,8 +22,8 @@ const envSchema = z.object({
   CONSENT_TEXT: z.string().min(1),
   EMAIL_PROVIDER_MODE: providerModeSchema.default('simulation'),
   WHATSAPP_PROVIDER_MODE: providerModeSchema.default('simulation'),
-  RESEND_API_KEY: z.string().optional().default(''),
-  RESEND_FROM_EMAIL: z.string().email().or(z.literal('')).optional().default(''),
+  BREVO_API_KEY: z.string().optional().default(''),
+  BREVO_FROM_EMAIL: z.string().email().or(z.literal('')).optional().default(''),
   WHATSAPP_API_URL: z.string().optional().default(''),
   WHATSAPP_ACCESS_TOKEN: z.string().optional().default(''),
   WHATSAPP_SENDER_ID: z.string().optional().default(''),
@@ -48,16 +48,13 @@ export function loadEnv(input: NodeJS.ProcessEnv = process.env): AppEnv {
   }
 
   const value = parsed.data;
-  const emailReady = value.EMAIL_PROVIDER_MODE === 'simulation' || Boolean(value.RESEND_API_KEY && value.RESEND_FROM_EMAIL);
+  const emailReady = value.EMAIL_PROVIDER_MODE === 'simulation' || Boolean(value.BREVO_API_KEY && value.BREVO_FROM_EMAIL);
   const whatsappReady =
     value.WHATSAPP_PROVIDER_MODE === 'simulation' ||
     Boolean(value.WHATSAPP_API_URL && value.WHATSAPP_ACCESS_TOKEN && value.WHATSAPP_SENDER_ID && value.WHATSAPP_TEMPLATE_REGISTRATION);
 
   if (value.EMAIL_PROVIDER_MODE === 'real' && !emailReady) {
-    throw new Error('Invalid runtime configuration: RESEND_API_KEY, RESEND_FROM_EMAIL');
-  }
-  if (value.NODE_ENV === 'production' && value.EMAIL_PROVIDER_MODE === 'real' && value.RESEND_FROM_EMAIL === 'onboarding@resend.dev') {
-    throw new Error('Invalid runtime configuration: RESEND_FROM_EMAIL must use an operator-verified sender domain in production');
+    throw new Error('Invalid runtime configuration: BREVO_API_KEY, BREVO_FROM_EMAIL');
   }
 
   if (value.WHATSAPP_PROVIDER_MODE === 'real' && !whatsappReady) {

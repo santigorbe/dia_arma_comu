@@ -75,7 +75,7 @@ Foundation tests cover migration ordering/idempotency and health/readiness behav
 
 Email and WhatsApp run in simulation by default. Real delivery must remain disabled until operators provide credentials, sender identities, approved templates, domains, and provider approval evidence.
 
-Registration confirmations are persisted in the email outbox and delivered by the `worker` service. In simulation mode the worker records a delivered attempt without contacting a provider. To activate Resend in a controlled environment, set `EMAIL_PROVIDER_MODE=real`, inject `RESEND_API_KEY` through the deployment secret manager, and set `RESEND_FROM_EMAIL` to an operator-verified sender-domain address. Compose forwards those values to both the API and worker without storing secrets in source. The production configuration rejects Resend's test sender (`onboarding@resend.dev`); provider-domain verification remains an operator responsibility. Delivery failures are recorded for retry and do not change an accepted registration response.
+Registration confirmations are persisted in the email outbox and delivered by the `worker` service. In simulation mode the worker records a delivered attempt without contacting a provider. To activate Brevo in a controlled environment, set `EMAIL_PROVIDER_MODE=real`, inject `BREVO_API_KEY` through the deployment secret manager, and set `BREVO_FROM_EMAIL` to an operator-verified Brevo sender address. Compose forwards those values to both the API and worker without storing secrets in source. Brevo sender verification remains an operator responsibility and is not validated remotely by this application. Delivery failures are recorded for retry and do not change an accepted registration response.
 
 ## Production prerequisites
 

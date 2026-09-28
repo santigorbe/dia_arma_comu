@@ -42,17 +42,39 @@ describe('registration confirmation outbox worker', () => {
     expect(JSON.stringify(logs)).not.toContain('person@example.test');
   });
 
+  it('records Brevo status errors for retry', async () => {
+    const db = new FakeDb();
+    await registerParticipant(testEnv, db, registration);
+    const provider = { mode: 'real' as const, send: vi.fn(async () => { throw new Error('brevo_429'); }) };
+
+    await expect(processNextCommunicationJob(db, provider, 'worker-test', () => {})).resolves.toBe(true);
+
+    expect(db.outboxJobs[0]).toMatchObject({ state: 'retryable_failed', last_error_code: 'brevo_429' });
+    expect(db.communicationAttempts[0]).toMatchObject({ outcome: 'failed', sanitized_summary: '{"errorCode":"brevo_429"}' });
+  });
+
   it('does not invoke a provider when no due job is available', async () => {
     const provider = { mode: 'simulation' as const, send: vi.fn() };
     await expect(processNextCommunicationJob(new FakeDb(), provider, 'worker-test')).resolves.toBe(false);
     expect(provider.send).not.toHaveBeenCalled();
   });
 
-  it('uses the Resend HTTP adapter only in configured real mode', async () => {
-    const request = vi.fn(async () => new Response(JSON.stringify({ id: 'resend-message-1' }), { status: 200 }));
-    const provider = createEmailProvider({ ...testEnv, EMAIL_PROVIDER_MODE: 'real', RESEND_API_KEY: 'test-key', RESEND_FROM_EMAIL: 'events@example.test' }, request);
+  it('uses the Brevo HTTP adapter only in configured real mode', async () => {
+    const request = vi.fn(async () => new Response(JSON.stringify({ messageId: 'brevo-message-1' }), { status: 200 }));
+    const provider = createEmailProvider({ ...testEnv, EMAIL_PROVIDER_MODE: 'real', BREVO_API_KEY: 'test-key', BREVO_FROM_EMAIL: 'events@example.test' }, request);
 
-    await expect(provider.send({ to: 'delivered@resend.dev', subject: 'Test', text: 'Test body' })).resolves.toEqual({ providerId: 'resend-message-1' });
-    expect(request).toHaveBeenCalledWith('https://api.resend.com/emails', expect.objectContaining({ method: 'POST' }));
+    await expect(provider.send({ to: 'person@example.test', subject: 'Test', text: 'Test body' })).resolves.toEqual({ providerId: 'brevo-message-1' });
+    expect(request).toHaveBeenCalledWith('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': 'test-key', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sender: { email: 'events@example.test' }, to: [{ email: 'person@example.test' }], subject: 'Test', textContent: 'Test body' })
+    });
+  });
+
+  it('surfaces Brevo non-2xx responses as status-only errors', async () => {
+    const request = vi.fn(async () => new Response(null, { status: 429 }));
+    const provider = createEmailProvider({ ...testEnv, EMAIL_PROVIDER_MODE: 'real', BREVO_API_KEY: 'test-key', BREVO_FROM_EMAIL: 'events@example.test' }, request);
+
+    await expect(provider.send({ to: 'person@example.test', subject: 'Test', text: 'Test body' })).rejects.toThrow('brevo_429');
   });
 });

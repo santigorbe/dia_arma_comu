@@ -18,7 +18,7 @@ export async function processNextCommunicationJob(db: Queryable, provider: Email
     await recordDelivered(db, job, provider.mode, result.providerId);
     logger.info('Communication job delivered', { jobId: job.id, attempt: job.attempts, providerMode: provider.mode });
   } catch (error) {
-    const errorCode = error instanceof Error && /^resend_\d+$/.test(error.message) ? error.message : 'delivery_failed';
+    const errorCode = error instanceof Error && /^brevo_\d+$/.test(error.message) ? error.message : 'delivery_failed';
     await recordFailure(db, job, provider.mode, errorCode);
     logger.error('Communication job delivery failed', { jobId: job.id, attempt: job.attempts, errorCode, providerMode: provider.mode });
   }

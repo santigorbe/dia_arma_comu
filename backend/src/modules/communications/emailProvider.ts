@@ -19,14 +19,14 @@ export function createEmailProvider(env: AppEnv, request: typeof fetch = fetch):
   return {
     mode: 'real',
     async send(email) {
-      const response = await request('https://api.resend.com/emails', {
+      const response = await request('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: env.RESEND_FROM_EMAIL, to: [email.to], subject: email.subject, text: email.text })
+        headers: { 'api-key': env.BREVO_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: { email: env.BREVO_FROM_EMAIL }, to: [{ email: email.to }], subject: email.subject, textContent: email.text })
       });
-      if (!response.ok) throw new Error(`resend_${response.status}`);
-      const body = await response.json() as { id?: string };
-      return { providerId: body.id };
+      if (!response.ok) throw new Error(`brevo_${response.status}`);
+      const body = await response.json() as { messageId?: string };
+      return { providerId: body.messageId };
     }
   };
 }
