@@ -18,6 +18,8 @@ COPY --from=deps /app/node_modules node_modules
 COPY --from=deps /app/frontend/node_modules frontend/node_modules
 COPY --from=build /app/frontend/dist frontend/dist
 COPY frontend/package.json frontend/package.json
+COPY frontend/vite.config.ts frontend/vite.config.ts
+COPY frontend/src/pwa/cachePolicy.ts frontend/src/pwa/cachePolicy.ts
 WORKDIR /app/frontend
 EXPOSE 5173
 CMD ["node", "node_modules/vite/bin/vite.js", "preview", "--host", "0.0.0.0", "--port", "5173", "--strictPort"]
