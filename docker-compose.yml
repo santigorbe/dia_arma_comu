@@ -1,9 +1,13 @@
+x-backend-runtime-env-file: &backend-runtime-env-file
+  - backend/.env
+
 services:
   db-init:
     build:
       context: .
       dockerfile: backend/Dockerfile
     command: ["node", "backend/dist/src/scripts/initializeDatabase.js"]
+    env_file: *backend-runtime-env-file
     environment: &backend-environment
       NODE_ENV: development
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
@@ -18,8 +22,6 @@ services:
       ACTIVE_CONSENT_VERSION: ${ACTIVE_CONSENT_VERSION:-consent-local-placeholder}
       CONSENT_TEXT: ${CONSENT_TEXT:-Texto local de consentimiento no definitivo.}
       EMAIL_PROVIDER_MODE: ${EMAIL_PROVIDER_MODE:-simulation}
-      BREVO_API_KEY: ${BREVO_API_KEY:-}
-      BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
       WHATSAPP_PROVIDER_MODE: ${WHATSAPP_PROVIDER_MODE:-simulation}
       MAP_TILE_URL: ${MAP_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
     depends_on:
@@ -46,6 +48,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    env_file: *backend-runtime-env-file
     environment: *backend-environment
     ports:
       - "3000:3000"
@@ -63,6 +66,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     command: ["node", "backend/dist/src/scripts/runCommunicationWorker.js"]
+    env_file: *backend-runtime-env-file
     environment: *backend-environment
     depends_on:
       db-init:
