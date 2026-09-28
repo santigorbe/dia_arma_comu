@@ -91,6 +91,14 @@ pnpm --filter @communications-day/frontend run lint
 - Affected files: `backend/src/shared/http/errors.ts`, `backend/src/shared/http/validation.ts`, `backend/src/modules/registration/registrationSchemas.ts`, `backend/src/modules/registration/registrationRoutes.ts`, `backend/tests/integration/errors.test.ts`, `backend/tests/integration/registrationValidation.test.ts`, `frontend/src/features/public/RegisterPage.tsx`, `frontend/src/features/public/RegisterPage.test.tsx`, `frontend/src/styles/index.css`, and `odd/tasks/registration-validation-feedback.md`.
 - Work-unit commit: `ab2aaf6 fix(registration): show field validation feedback`.
 
+## Parent Native RDD Assessment
+
+- Candidate base: `1975dfd`, committed-only range through the completed registration validation work.
+- Native assessment command used explicit exclusion for unrelated pre-existing untracked `diploma/`, inventory `sha256:be4b41b3f56669058e838a0397c049294ca2a4a8d590ab94d680e573c875e6d7`.
+- Result: risk `medium`, reason `executable_change` at `backend/src/modules/registration/registrationRoutes.ts`, 10 changed paths, 345 authored changed lines, `review_due: false`, `review_due_reason: under_budget`.
+- Therefore no native review transaction or candidate consent was launched; this work remains pending inside the medium-risk delivery slice under the ODD budget.
+- Parent spot-check: `pnpm --filter @communications-day/frontend exec vitest run src/features/public/RegisterPage.test.tsx` — passed, 1 file and 10 tests.
+
 ## Next Step
 
-The parent handles native review against implementation commit `ab2aaf6`. No push or pull request is authorized.
+Keep this work pending inside the medium-risk delivery slice until the ODD budget makes native review due. No push or pull request is authorized.
