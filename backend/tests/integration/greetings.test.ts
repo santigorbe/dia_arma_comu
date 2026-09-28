@@ -108,4 +108,28 @@ describe('WhatsApp greeting integration API', () => {
     const response = await request(app).get('/imagenes/..%2F..%2Fetc%2Fpasswd').set('Authorization', AUTH_HEADER);
     expect(response.status).toBe(400);
   });
+
+  it('accepts the image route token as a query string, for direct browser viewing', async () => {
+    const db = new FakeDb();
+    const app = createApp(testEnv, db);
+    const registration = await request(app).post('/api/public/registrations').send(registrationPayload({ fullName: 'Con Tarjeta Query', phone: '+5493514444444' }));
+    const participantId = registration.body.participantId as string;
+
+    await request(app)
+      .post(`/imagenes/${participantId}`)
+      .set('Authorization', AUTH_HEADER)
+      .attach('imagen', Buffer.from('fake-png-bytes'), { filename: 'card.png', contentType: 'image/png' });
+
+    const download = await request(app).get(`/imagenes/${participantId}.png?token=${testEnv.INTEGRATIONS_API_TOKEN}`);
+    expect(download.status).toBe(200);
+
+    const noToken = await request(app).get(`/imagenes/${participantId}.png`);
+    expect(noToken.status).toBe(401);
+  });
+
+  it('still requires the header for /datos, rejecting a token passed only as a query string', async () => {
+    const app = createApp(testEnv, new FakeDb());
+    const response = await request(app).get(`/datos?token=${testEnv.INTEGRATIONS_API_TOKEN}`);
+    expect(response.status).toBe(401);
+  });
 });

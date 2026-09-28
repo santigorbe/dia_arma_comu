@@ -7,7 +7,7 @@ import type { Queryable } from '../../db/pool.js';
 import { AppError } from '../../shared/http/errors.js';
 import { rateLimit } from '../../shared/http/rateLimits.js';
 import { uuidSchema, validateRequest } from '../../shared/http/validation.js';
-import { requireIntegrationToken } from './greetingsAuth.js';
+import { requireIntegrationToken, requireIntegrationTokenFromHeaderOrQuery } from './greetingsAuth.js';
 import { findParticipantById, listParticipantsWithPhone, setCardImage } from './greetingsRepository.js';
 
 const FILENAME_PATTERN = /^[a-zA-Z0-9_-]+\.(png|jpg|jpeg)$/;
@@ -46,11 +46,17 @@ export function createGreetingsRoutes(env: AppEnv, db: Queryable): Router {
     }
   });
 
-  router.get('/imagenes/:filename', ...guard, validateRequest({ params: filenameParamSchema }), (request, response) => {
-    response.sendFile(request.params.filename, { root: env.CARD_STORAGE_DIR }, (error) => {
-      if (error) response.status(404).json({ error: 'not_found' });
-    });
-  });
+  router.get(
+    '/imagenes/:filename',
+    rateLimit('integration'),
+    requireIntegrationTokenFromHeaderOrQuery(env),
+    validateRequest({ params: filenameParamSchema }),
+    (request, response) => {
+      response.sendFile(request.params.filename, { root: env.CARD_STORAGE_DIR }, (error) => {
+        if (error) response.status(404).json({ error: 'not_found' });
+      });
+    }
+  );
 
   router.post(
     '/imagenes/:participantId',
