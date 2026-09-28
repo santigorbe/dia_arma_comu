@@ -15,6 +15,7 @@ const baseEnv = {
   EMAIL_PROVIDER_MODE: 'simulation',
   WHATSAPP_PROVIDER_MODE: 'simulation',
   MAP_TILE_URL: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  INTEGRATIONS_API_TOKEN: 'test-integration-token-with-enough-length',
   ADMIN_BOOTSTRAP_IDENTIFIER: 'test-admin',
   ADMIN_BOOTSTRAP_PASSWORD: 'test-bootstrap-password'
 };

@@ -28,7 +28,9 @@ const envSchema = z.object({
   WHATSAPP_ACCESS_TOKEN: z.string().optional().default(''),
   WHATSAPP_SENDER_ID: z.string().optional().default(''),
   WHATSAPP_TEMPLATE_REGISTRATION: z.string().optional().default(''),
-  MAP_TILE_URL: z.string().min(1)
+  MAP_TILE_URL: z.string().min(1),
+  INTEGRATIONS_API_TOKEN: z.string().min(20),
+  CARD_STORAGE_DIR: z.string().min(1).default('/app/backend/storage/cards')
 });
 
 export type AppEnv = z.infer<typeof envSchema> & {

@@ -19,7 +19,8 @@ describe('foundation migrations', () => {
        '0010_participant_personnel_type.sql',
        '0011_real_event_content_and_schedule.sql',
        '0012_participant_service_status.sql',
-       '0013_schedule_entry_categories.sql'
+       '0013_schedule_entry_categories.sql',
+       '0014_participant_card_image.sql'
     ]);
     expect(migrations.every((migration) => migration.sql.trim().length > 0)).toBe(true);
   });
@@ -28,10 +29,10 @@ describe('foundation migrations', () => {
     const db = new FakeDb();
     const migrations = await loadMigrations();
 
-    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013']);
+    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014']);
     await expect(runMigrations(db, migrations)).resolves.toEqual([]);
 
-    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013']);
+    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014']);
   });
 
   it('seeds published fictional activities with stable IDs and preserves existing rows', async () => {
@@ -102,6 +103,15 @@ describe('foundation migrations', () => {
       expect(sql).toContain(id);
     }
     expect(sql).not.toMatch(/\bINSERT\b|\bDELETE\b|\bTRUNCATE\b/i);
+  });
+
+  it('adds card_image_filename without touching existing data', async () => {
+    const migration = (await loadMigrations()).find((entry) => entry.name === '0014_participant_card_image.sql');
+    expect(migration).toBeDefined();
+    const sql = migration!.sql;
+
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS card_image_filename text');
+    expect(sql).not.toMatch(/\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bTRUNCATE\b/i);
   });
 
   it('rolls back failed migrations without exposing the failing SQL as a readiness detail', async () => {
