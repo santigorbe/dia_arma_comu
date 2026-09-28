@@ -99,6 +99,16 @@ pnpm --filter @communications-day/frontend run lint
 - Affected files: `frontend/src/features/public/RegisterPage.tsx`, `frontend/src/features/public/RegisterPage.test.tsx`, `backend/src/modules/registration/registrationSchemas.ts`, `backend/migrations/0014_relax_participant_service_status.sql`, `backend/tests/integration/registrationValidation.test.ts`, `backend/tests/integration/migrations.test.ts`, `backend/tests/integration/databaseInitialization.test.ts`, and `odd/tasks/remove-registration-unit-status.md`.
 - Work-unit commit: `58c3475 fix(registration): remove unit and status fields`.
 
+## Parent Native RDD Assessment
+
+- Candidate base: `a284b2e`, committed-only.
+- Unrelated pre-existing `diploma/` was explicitly excluded with inventory `sha256:be4b41b3f56669058e838a0397c049294ca2a4a8d590ab94d680e573c875e6d7`.
+- Result: risk `medium`, reason `executable_change` at `backend/migrations/0014_relax_participant_service_status.sql`, 8 changed paths, and 350 authored changed lines.
+- `review_due: false`; reason `under_budget`.
+- No native review transaction or consent was launched. The candidate remains pending in the medium-risk delivery slice.
+- Parent spot-check: `pnpm --filter @communications-day/frontend exec vitest run src/features/public/RegisterPage.test.tsx` — passed, 1 file and 9 tests.
+- Parent runtime verification: backend `/health/ready` reported all checks OK, and the registration page returned HTTP 200.
+
 ## Next Step
 
-Parent performs the default RDD assessment against implementation commit `58c3475`. No push, pull request, or review was performed in this writer thread.
+Keep this candidate pending in the medium-risk delivery slice until the ODD budget makes native review due. No push or pull request is authorized.
