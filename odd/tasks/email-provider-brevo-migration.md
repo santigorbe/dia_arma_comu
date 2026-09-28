@@ -27,6 +27,7 @@ Migrate local transactional registration-confirmation delivery from Resend to Br
 
 - [x] **BEM-01 — Migrate registration email delivery to Brevo**: Updated the provider, worker recognition, configuration/readiness, deterministic tests, Compose, environment example, and operational documentation; ran required checks; commit evidence is recorded below.
 - [x] **BEM-02 — Load Brevo runtime variables from `backend/.env` in Compose**: Supplied the backend runtime environment file to each service that executes backend code and removed Compose-level empty Brevo overrides; commit evidence is recorded below.
+- [x] **BEM-03 — Let `backend/.env` control the Compose email-provider mode**: Removed the Compose-level `EMAIL_PROVIDER_MODE` interpolation from the shared backend environment so `db-init`, `backend`, and `worker` retain the value provided by `backend/.env`; verified an absent value defaults to simulation in backend configuration.
 
 ## Route and Trigger Evidence
 
@@ -34,6 +35,7 @@ Migrate local transactional registration-confirmation delivery from Resend to Br
 |---|---|---|---|
 | BEM-01 | `delegated` | Multi-file provider, configuration, worker/test, Compose, and documentation migration. | Local deterministic implementation and checks only; no credentials, network delivery, push, PR, or remote operation. |
 | BEM-02 | `direct local implementation` | Compose-only configuration correction with minimal documentation. | No `.env` reads, no secret output, live delivery, remote operation, push, or PR. |
+| BEM-03 | `direct local implementation` | The shared Compose environment explicitly overrides the `backend/.env` email mode for all backend processes. | No `.env` reads, no secret output, live delivery, remote operation, push, or PR. |
 
 ## Acceptance Criteria
 
@@ -88,3 +90,10 @@ Migrate local transactional registration-confirmation delivery from Resend to Br
 - BEM-02 `pnpm --filter @communications-day/backend test -- health`: passed (15 test files, 55 tests; 1.24 s).
 - BEM-02 runtime delivery: N/A; the fix is Compose configuration only and live delivery is explicitly prohibited.
 - BEM-02 rollback boundary: revert the BEM-02 work-unit commit to remove the three `env_file` references, restore the former Compose Brevo entries, and restore the prior operator guidance without changing provider code or database state.
+- BEM-03 configuration proof: the shared `backend-environment` anchor no longer defines `EMAIL_PROVIDER_MODE`; because `db-init`, `backend`, and `worker` use that anchor and `backend/.env`, no Compose environment entry can override the file's mode. The README now correctly places all Brevo activation variables in `backend/.env` and states the safe backend default.
+- BEM-03 `docker compose config --no-interpolate --no-env-resolution --no-path-resolution >/dev/null && git diff --check`: passed with no output. Compose environment-file resolution and expanded output were deliberately suppressed, so no `backend/.env` value was read or exposed.
+- BEM-03 `pnpm --filter @communications-day/backend lint`: passed (`tsc -p tsconfig.json --noEmit`).
+- BEM-03 `pnpm --filter @communications-day/backend test -- health`: passed (15 test files, 55 tests; 834 ms).
+- BEM-03 isolated default proof: from an empty `/tmp/opencode/email-mode-fixture` directory, imported the built configuration and called `loadEnv` with a complete non-secret fixture omitting `EMAIL_PROVIDER_MODE`; it completed without output only after asserting the resolved value was `simulation`. This did not read `backend/.env`.
+- BEM-03 runtime delivery: N/A; the fix is Compose configuration only and live delivery is explicitly prohibited.
+- BEM-03 rollback boundary: revert the BEM-03 work-unit commit to restore the shared Compose email-mode interpolation and prior operator guidance without changing provider code, dependencies, or database state.

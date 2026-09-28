@@ -21,7 +21,6 @@ services:
       AUTH_COOKIE_MAX_AGE_SECONDS: ${AUTH_COOKIE_MAX_AGE_SECONDS:-3600}
       ACTIVE_CONSENT_VERSION: ${ACTIVE_CONSENT_VERSION:-consent-local-placeholder}
       CONSENT_TEXT: ${CONSENT_TEXT:-Texto local de consentimiento no definitivo.}
-      EMAIL_PROVIDER_MODE: ${EMAIL_PROVIDER_MODE:-simulation}
       WHATSAPP_PROVIDER_MODE: ${WHATSAPP_PROVIDER_MODE:-simulation}
       MAP_TILE_URL: ${MAP_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
     depends_on:
