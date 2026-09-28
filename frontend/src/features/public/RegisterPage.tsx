@@ -115,12 +115,29 @@ type RegistrationState =
   | { status: 'success'; participantId: string }
   | { status: 'error' | 'conflict' | 'stale_consent'; message: string; activeConsentVersion?: string };
 
+type RegistrationControlName = 'fullName' | 'email' | 'phone' | 'personnelType' | 'militaryRank' | 'serviceStatus' | 'unit' | 'otherUnit' | 'consent';
+type FieldErrors = Partial<Record<RegistrationControlName, string>>;
+
+const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email', 'phone', 'personnelType', 'militaryRank', 'serviceStatus', 'unit', 'otherUnit', 'consent'];
+const VALIDATION_MESSAGES: Record<string, Record<string, string>> = {
+  fullName: messages(['invalid_type', 'too_small', 'too_big'], 'Ingrese un nombre completo válido.'),
+  email: messages(['invalid_type', 'invalid_string', 'too_big'], 'Ingrese un correo electrónico válido.'),
+  phone: messages(['invalid_type', 'too_big'], 'Revise el teléfono ingresado.'),
+  unitOrOrganization: messages(['invalid_type', 'too_big'], 'Revise la unidad u organización.'),
+  personnelType: messages(['invalid_type', 'invalid_enum_value'], 'Seleccione el tipo de personal.'),
+  militaryRank: messages(['invalid_type', 'too_small', 'too_big', 'custom'], 'Seleccione un grado válido.'),
+  serviceStatus: messages(['invalid_type', 'invalid_enum_value', 'custom'], 'Seleccione una situación válida.'),
+  'consent.accepted': messages(['invalid_type', 'invalid_literal'], 'Confirme el consentimiento para continuar.'),
+  'consent.version': messages(['invalid_type', 'too_small', 'too_big'], 'Revise la versión activa del consentimiento.')
+};
+
 export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { embedded?: boolean; onSuccessfulRegistration?: () => void }) {
   const visit = useVisit();
   const [state, setState] = useState<RegistrationState>({ status: 'idle' });
   const [consentVersion, setConsentVersion] = useState(activeConsentVersion);
   const [personnelType, setPersonnelType] = useState<'militar' | 'civil'>('civil');
   const [unit, setUnit] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -137,6 +154,7 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
       return;
     }
 
+    setFieldErrors({});
     setState({ status: 'loading' });
     try {
       const response = await apiRequest<{ participantId: string }>('/api/public/registrations', {
@@ -180,8 +198,27 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
         setState({ status: 'conflict', message: 'Ya existe un registro para esta identidad del evento con datos diferentes.' });
         return;
       }
-      setState({ status: 'error', message: body?.error === 'validation_failed' ? 'Revise los campos del registro marcados.' : 'El registro no pudo completarse. Inténtelo de nuevo.' });
+      if (body?.error === 'validation_failed') {
+        const nextFieldErrors = mapValidationDetails(body.details, formElement);
+        const firstInvalidControl = CONTROL_ORDER.find((name) => nextFieldErrors[name]);
+        if (firstInvalidControl) {
+          setFieldErrors(nextFieldErrors);
+          setState({ status: 'error', message: 'Revise los campos indicados a continuación.' });
+          const control = formElement.elements.namedItem(firstInvalidControl);
+          if (control instanceof HTMLElement) control.focus();
+        } else {
+          setState({ status: 'error', message: 'No se pudieron validar los datos del registro. Revise la información e inténtelo de nuevo.' });
+        }
+        return;
+      }
+      setState({ status: 'error', message: 'El registro no pudo completarse. Inténtelo de nuevo.' });
     }
+  }
+
+  function invalidProps(name: RegistrationControlName) {
+    return fieldErrors[name]
+      ? { 'aria-invalid': true as const, 'aria-describedby': `${name}-error` }
+      : {};
   }
 
   const Container = 'section';
@@ -194,15 +231,18 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
       <form className="registration-form" onSubmit={submit} noValidate>
         <label>
           Nombre completo
-          <input name="fullName" required minLength={2} maxLength={120} />
+          <input name="fullName" required minLength={2} maxLength={120} {...invalidProps('fullName')} />
+          <FieldError name="fullName" errors={fieldErrors} />
         </label>
         <label>
           Correo electrónico
-          <input name="email" type="email" required />
+          <input name="email" type="email" required {...invalidProps('email')} />
+          <FieldError name="email" errors={fieldErrors} />
         </label>
         <label>
           Teléfono
-          <input name="phone" maxLength={40} />
+          <input name="phone" maxLength={40} {...invalidProps('phone')} />
+          <FieldError name="phone" errors={fieldErrors} />
         </label>
         <label>
           Personal
@@ -211,16 +251,18 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
             required
             value={personnelType}
             onChange={(event) => setPersonnelType(event.target.value as 'militar' | 'civil')}
+            {...invalidProps('personnelType')}
           >
             <option value="civil">Civil</option>
             <option value="militar">Militar</option>
           </select>
+          <FieldError name="personnelType" errors={fieldErrors} />
         </label>
         {personnelType === 'militar' && (
           <div className="registration-field-row">
             <label>
               Grado
-              <select name="militaryRank" required defaultValue="">
+              <select name="militaryRank" required defaultValue="" {...invalidProps('militaryRank')}>
                 <option value="" disabled>
                   Seleccione un grado
                 </option>
@@ -230,10 +272,11 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
                   </option>
                 ))}
               </select>
+              <FieldError name="militaryRank" errors={fieldErrors} />
             </label>
             <label>
               Situación
-              <select name="serviceStatus" required defaultValue="">
+              <select name="serviceStatus" required defaultValue="" {...invalidProps('serviceStatus')}>
                 <option value="" disabled>
                   Seleccione una opción
                 </option>
@@ -243,12 +286,13 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
                   </option>
                 ))}
               </select>
+              <FieldError name="serviceStatus" errors={fieldErrors} />
             </label>
           </div>
         )}
         <label>
           Unidad / Elemento
-          <select name="unit" value={unit} onChange={(event) => setUnit(event.target.value)}>
+          <select name="unit" value={unit} onChange={(event) => setUnit(event.target.value)} {...(unit === OTHER_UNIT_VALUE ? {} : invalidProps('unit'))}>
             <option value="">No corresponde / prefiero no indicar</option>
             {UNIT_GROUPS.map((group) => (
               <optgroup key={group.label} label={group.label}>
@@ -261,20 +305,23 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
             ))}
             <option value={OTHER_UNIT_VALUE}>Otra (indicar)</option>
           </select>
+          {unit !== OTHER_UNIT_VALUE && <FieldError name="unit" errors={fieldErrors} />}
         </label>
         {unit === OTHER_UNIT_VALUE && (
           <label>
             Indique su unidad u organización
-            <input name="otherUnit" required maxLength={120} />
+            <input name="otherUnit" required maxLength={120} {...invalidProps('otherUnit')} />
+            <FieldError name="otherUnit" errors={fieldErrors} />
           </label>
         )}
         <section className="consent-panel">
           <h2>Versión del consentimiento {consentVersion}</h2>
           <p>{activeConsentText}</p>
           <label className="consent-checkbox">
-            <input name="consent" type="checkbox" />
+            <input name="consent" type="checkbox" {...invalidProps('consent')} />
             <span>Afirmo mi consentimiento a esta versión activa.</span>
           </label>
+          <FieldError name="consent" errors={fieldErrors} />
         </section>
         <button disabled={state.status === 'loading' || visit.status !== 'ready'} className="registration-submit">
           {state.status === 'loading' ? 'Enviando…' : 'Enviar registro'}
@@ -287,6 +334,35 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
 function optionalString(value: FormDataEntryValue | null) {
   const normalized = String(value ?? '').trim();
   return normalized ? normalized : undefined;
+}
+
+function messages(codes: string[], message: string) {
+  return Object.fromEntries(codes.map((code) => [code, message]));
+}
+
+function mapValidationDetails(details: unknown, form: HTMLFormElement): FieldErrors {
+  if (!Array.isArray(details)) return {};
+  const errors: FieldErrors = {};
+  for (const detail of details) {
+    if (!detail || typeof detail !== 'object') continue;
+    const { field, code } = detail as { field?: unknown; code?: unknown };
+    if (typeof field !== 'string' || typeof code !== 'string') continue;
+    const message = VALIDATION_MESSAGES[field]?.[code];
+    const controlName = validationControlName(field, form);
+    if (message && controlName && !errors[controlName]) errors[controlName] = message;
+  }
+  return errors;
+}
+
+function validationControlName(field: string, form: HTMLFormElement): RegistrationControlName | undefined {
+  if (field === 'unitOrOrganization') return form.elements.namedItem('otherUnit') ? 'otherUnit' : 'unit';
+  if (field === 'consent.accepted' || field === 'consent.version') return 'consent';
+  const name = field as RegistrationControlName;
+  return CONTROL_ORDER.includes(name) && form.elements.namedItem(name) ? name : undefined;
+}
+
+function FieldError({ name, errors }: { name: RegistrationControlName; errors: FieldErrors }) {
+  return errors[name] ? <span id={`${name}-error`} className="registration-field-error">{errors[name]}</span> : null;
 }
 
 function StatusMessage({ tone, message }: { tone: 'success' | 'error'; message: string }) {

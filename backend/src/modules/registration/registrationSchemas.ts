@@ -1,6 +1,18 @@
 import { z } from 'zod';
 import { idempotencyKeySchema, uuidSchema } from '../../shared/http/validation.js';
 
+export const registrationValidationDetailAllowlist = {
+  fullName: ['invalid_type', 'too_small', 'too_big'],
+  email: ['invalid_type', 'invalid_string', 'too_big'],
+  phone: ['invalid_type', 'too_big'],
+  unitOrOrganization: ['invalid_type', 'too_big'],
+  personnelType: ['invalid_type', 'invalid_enum_value'],
+  militaryRank: ['invalid_type', 'too_small', 'too_big', 'custom'],
+  serviceStatus: ['invalid_type', 'invalid_enum_value', 'custom'],
+  'consent.accepted': ['invalid_type', 'invalid_literal'],
+  'consent.version': ['invalid_type', 'too_small', 'too_big']
+} as const;
+
 export const registrationRequestSchema = z
   .object({
     requestIdempotencyKey: idempotencyKeySchema,

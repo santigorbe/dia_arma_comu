@@ -22,10 +22,15 @@ describe('registration validation and idempotency', () => {
 
   it('rejects invalid and undeclared fields without storing partial personal data', async () => {
     const db = new FakeDb();
-    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'not-email', extraSecret: 'hidden' }));
-    expect(response.status).toBe(400);
+    const app = createApp(testEnv, db);
+    const first = await request(app).post('/api/public/registrations').send(payload({ email: 'not-email', extraSecret: 'hidden' }));
+    const second = await request(app).post('/api/public/registrations').send(payload({ email: 'not-email', extraSecret: 'hidden' }));
+    expect(first.status).toBe(400);
+    expect(second.status).toBe(400);
+    expect(first.body.details).toEqual([{ field: 'email', code: 'invalid_string' }]);
+    expect(second.body.details).toEqual(first.body.details);
     expect(db.participants.size).toBe(0);
-    expect(JSON.stringify(response.body)).not.toMatch(/hidden|person@example|Participant/i);
+    expect(JSON.stringify(first.body)).not.toMatch(/hidden|not-email|person@example|Participant|message|value/i);
   });
 
   it('queues one email job for each accepted idempotency key and none for an exact replay', async () => {

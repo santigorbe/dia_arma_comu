@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { ZodError, type ZodTypeAny, z } from 'zod';
-import { AppError } from './errors.js';
+import { AppError, type DetailAllowlist } from './errors.js';
 
 export const uuidSchema = z.string().uuid();
 export const idempotencyKeySchema = z.string().uuid();
@@ -13,7 +13,7 @@ export type RequestSchemas = {
   body?: ZodTypeAny;
 };
 
-export function validateRequest(schemas: RequestSchemas): RequestHandler {
+export function validateRequest(schemas: RequestSchemas, detailAllowlist?: DetailAllowlist): RequestHandler {
   return (request, _response, next) => {
     try {
       if (schemas.params) request.params = schemas.params.parse(request.params);
@@ -23,7 +23,7 @@ export function validateRequest(schemas: RequestSchemas): RequestHandler {
       if (schemas.body) request.body = schemas.body.parse(request.body);
       next();
     } catch (error) {
-      next(toValidationError(error));
+      next(toValidationError(error, detailAllowlist));
     }
   };
 }
@@ -36,13 +36,14 @@ export function parseOrThrow<T extends ZodTypeAny>(schema: T, value: unknown): z
   }
 }
 
-function toValidationError(error: unknown) {
+function toValidationError(error: unknown, detailAllowlist?: DetailAllowlist) {
   if (error instanceof ZodError) {
     return new AppError(
       400,
       'validation_failed',
       'validation_failed',
-      error.issues.map((issue) => ({ field: issue.path.join('.'), code: issue.code }))
+      error.issues.map((issue) => ({ field: issue.path.join('.'), code: issue.code })),
+      detailAllowlist
     );
   }
 

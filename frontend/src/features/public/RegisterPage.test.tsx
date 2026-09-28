@@ -126,6 +126,62 @@ describe('RegisterPage', () => {
     expect(await screen.findByText(/El consentimiento cambió/i)).toBeTruthy();
     expect(screen.getByText(/Versión del consentimiento consent-2026-09/i)).toBeTruthy();
   });
+
+  it('renders field feedback, accessibility attributes, and focuses the first invalid field', async () => {
+    server.use(http.post('/api/public/registrations', () => HttpResponse.json({
+      error: 'validation_failed',
+      details: [
+        { field: 'email', code: 'invalid_string' },
+        { field: 'fullName', code: 'too_small' },
+        { field: 'email', code: 'unknown_code' },
+        { field: 'unknownField', code: 'custom' }
+      ]
+    }, { status: 400 })));
+    renderPage();
+    await screen.findByRole('button', { name: /enviar registro/i });
+    fillForm(true);
+    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+
+    const name = await screen.findByLabelText(/Nombre completo/i);
+    const email = screen.getByLabelText(/Correo electrónico/i);
+    expect(name.getAttribute('aria-invalid')).toBe('true');
+    expect(name.getAttribute('aria-describedby')).toBe('fullName-error');
+    expect(email.getAttribute('aria-invalid')).toBe('true');
+    expect(email.getAttribute('aria-describedby')).toBe('email-error');
+    expect(screen.getByText('Ingrese un nombre completo válido.')).toBeTruthy();
+    expect(screen.getByText('Ingrese un correo electrónico válido.')).toBeTruthy();
+    expect(document.activeElement).toBe(name);
+  });
+
+  it('maps conditional military validation details to their visible controls', async () => {
+    server.use(http.post('/api/public/registrations', () => HttpResponse.json({
+      error: 'validation_failed',
+      details: [{ field: 'militaryRank', code: 'custom' }, { field: 'serviceStatus', code: 'custom' }]
+    }, { status: 400 })));
+    renderPage();
+    await screen.findByRole('button', { name: /enviar registro/i });
+    fillForm(true);
+    fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'militar' } });
+    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+
+    const rank = await screen.findByLabelText(/Grado/i);
+    const status = screen.getByLabelText(/Situación/i);
+    expect(rank.getAttribute('aria-invalid')).toBe('true');
+    expect(status.getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(rank);
+  });
+
+  it('uses truthful fallback feedback when validation details are absent', async () => {
+    server.use(http.post('/api/public/registrations', () => HttpResponse.json({ error: 'validation_failed' }, { status: 400 })));
+    renderPage();
+    await screen.findByRole('button', { name: /enviar registro/i });
+    fillForm(true);
+    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+
+    expect(await screen.findByText(/No se pudieron validar los datos del registro/i)).toBeTruthy();
+    expect(screen.queryByText(/campos del registro marcados/i)).toBeNull();
+    expect(screen.getByLabelText(/Nombre completo/i).getAttribute('aria-invalid')).toBeNull();
+  });
 });
 
 function renderPage() {
