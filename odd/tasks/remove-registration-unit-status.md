@@ -37,7 +37,7 @@ Minimally remove the `Unidad / Elemento` and `Situación` registration inputs wh
 
 - [x] **RUS-01 — Frontend removal and payload**: Removed the `Unidad / Elemento` and `Situación` controls and their obsolete local state, constants, validation mapping, and focus ordering; new requests omit `unitOrOrganization` and `serviceStatus`; `Grado` remains visible and required only for `Personal = Militar`.
 - [x] **RUS-02 — Backend and schema migration compatibility**: Stopped requiring `serviceStatus`; retained valid optional `unitOrOrganization` and military `serviceStatus` input and unchanged storage behavior; added one forward-only migration that permits `NULL` for either personnel type while restricting non-NULL values to valid military statuses; retained historical columns and data.
-- [ ] **RUS-03 — Focused tests, verification, and commit evidence**: Update only necessary registration, migration, and database-initialization tests; run the planned focused Vitest and lint checks; record exact results, runtime evidence or explicit N/A, rollback boundary, affected files, and the Conventional Commit identity.
+- [x] **RUS-03 — Focused tests, verification, and commit evidence**: Updated only necessary registration, migration, and database-initialization tests; ran the planned focused Vitest and lint checks; recorded exact results, migration runtime evidence, rollback boundary, affected files, and Conventional Commit `58c3475`.
 
 ## Per-Task Route / Trigger Record
 
@@ -72,7 +72,7 @@ pnpm --filter @communications-day/frontend run lint
 
 ## Progress
 
-`RUS-01 and RUS-02 complete; RUS-03 verification complete with commit evidence pending.` All planned focused tests and lint checks pass, and migration `0014` is applied to the local PostgreSQL database. No unrelated source, environment, remote, push, or pull-request change has been performed.
+`RUS-01 through RUS-03 complete.` All planned focused tests and lint checks pass, migration `0014` is applied to the local PostgreSQL database, and implementation commit `58c3475` contains the coherent work unit. No unrelated source, environment, remote, push, or pull-request change was performed.
 
 ## RUS-01 Evidence
 
@@ -95,9 +95,10 @@ pnpm --filter @communications-day/frontend run lint
 - Migration runtime: the first default `pnpm --filter @communications-day/backend run migrate` attempt failed with `ECONNREFUSED 127.0.0.1:5432` because Compose exposes PostgreSQL on host port `5433`. Re-running the same repository migration command with the local Compose database endpoint supplied only to the process passed and reported `Applied 1 migration(s).`
 - Runtime database verification returned schema migration `0014` and constraint `CHECK ((service_status IS NULL) OR ((personnel_type = 'militar') AND (service_status IN ('actividad', 'retiro'))))` from the running local PostgreSQL instance.
 - No registration or provider request was submitted; no Resend operation occurred.
-- Rollback boundary: revert the implementation work-unit commit to restore the prior UI, payload, backend validation, focused tests, and tracker. Migration `0014` is forward-only and remains recorded in databases where applied; any database reversal must be a new forward migration rather than deleting the migration or historical data.
+- Rollback boundary: revert `58c3475` to restore the prior UI, payload, backend validation, focused tests, and tracker. Migration `0014` is forward-only and remains recorded in databases where applied; any database reversal must be a new forward migration rather than deleting the migration or historical data.
 - Affected files: `frontend/src/features/public/RegisterPage.tsx`, `frontend/src/features/public/RegisterPage.test.tsx`, `backend/src/modules/registration/registrationSchemas.ts`, `backend/migrations/0014_relax_participant_service_status.sql`, `backend/tests/integration/registrationValidation.test.ts`, `backend/tests/integration/migrations.test.ts`, `backend/tests/integration/databaseInitialization.test.ts`, and `odd/tasks/remove-registration-unit-status.md`.
+- Work-unit commit: `58c3475 fix(registration): remove unit and status fields`.
 
 ## Next Step
 
-Review and commit the coherent implementation work unit, then record its identity.
+Parent performs the default RDD assessment against implementation commit `58c3475`. No push, pull request, or review was performed in this writer thread.
