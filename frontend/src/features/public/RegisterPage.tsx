@@ -26,86 +26,6 @@ const MILITARY_RANKS: Array<{ name: string; code: string }> = [
   { name: 'Soldado Voluntario "En Comisión"', code: 'VS "EC"' }
 ];
 
-const SERVICE_STATUSES: Array<{ value: 'actividad' | 'retiro'; label: string }> = [
-  { value: 'actividad', label: 'En actividad' },
-  { value: 'retiro', label: 'Retiro' }
-];
-
-const UNIT_GROUPS: Array<{ label: string; units: string[] }> = [
-  {
-    label: 'Comisión y Dirección General',
-    units: [
-      'Comisión del Arma de Comunicaciones e Informática "Arcángel San Gabriel"',
-      'Dirección General de Comunicaciones, Informática y Ciberdefensa (DGCICD)',
-      'DGCICD / Dirección de Informática',
-      'DGCICD / Dirección de Comunicaciones y Guerra Electrónica',
-      'DGCICD / Dirección de Ciberdefensa',
-      'DGCICD / División Material',
-      'DGCICD / División Presupuesto',
-      'DGCICD / División Control de Gestión',
-      'DGCICD / División Personal',
-      'DGCICD / División Jurídica',
-      'Comando Conjunto de Ciberdefensa'
-    ]
-  },
-  {
-    label: 'Batallones y Agrupaciones',
-    units: [
-      'Batallón de Comunicaciones 141',
-      'Batallón de Comunicaciones 121',
-      'Batallón de Comunicaciones 181',
-      'Batallón de Comunicaciones 602',
-      'Batallón de Comunicaciones Satelital 601',
-      'Batallón de Guerra Electrónica y Ciberdefensa 601',
-      'Batallón de Mantenimiento de Comunicaciones 601',
-      'Batallón de Inteligencia 141',
-      'Agrupación de Comunicaciones 601 "Tcnl Higinio Vallejos"',
-      'Escuadrón de Comunicaciones Blindado 1',
-      'Escuadrón de Comunicaciones Blindado 2',
-      'BAL "Salta"'
-    ]
-  },
-  {
-    label: 'Compañías de Comunicaciones',
-    units: [
-      'Compañía de Comunicaciones Paracaidista 4',
-      'Compañía de Comunicaciones de Monte 3',
-      'Compañía de Comunicaciones de Monte 12',
-      'Compañía de Comunicaciones de Montaña 5',
-      'Compañía de Comunicaciones de Montaña 6',
-      'Compañía de Comunicaciones de Montaña 8',
-      'Compañía de Comunicaciones Mecanizada 9',
-      'Compañía de Comunicaciones Mecanizada 10',
-      'Compañía de Comunicaciones Mecanizada 11',
-      'CMN / Compañía de Comunicaciones',
-      'ESESC / Compañía de Comunicaciones'
-    ]
-  },
-  {
-    label: 'Institutos y Escuelas',
-    units: [
-      'Colegio Militar de la Nación',
-      'Escuela Superior de Guerra del Ejército',
-      'Escuela de Suboficiales de Ejército "Sargento Cabral"',
-      'Escuela de Comunicaciones "Tte Grl Julio Alberto Lagos"',
-      'Liceo Militar General Araoz Lamadrid'
-    ]
-  },
-  {
-    label: 'Otras dependencias',
-    units: [
-      'Ministerio de Defensa',
-      'Secretaría General del Ejército',
-      'Comando de la 2ª División de Ejército',
-      'Comando de la Brigada Aerotransportada IV',
-      'Dirección General de Inteligencia',
-      'Dirección General de Salud'
-    ]
-  }
-];
-
-const OTHER_UNIT_VALUE = '__otro__';
-
 const activeConsentVersion = import.meta.env.VITE_ACTIVE_CONSENT_VERSION ?? 'consent-local-placeholder';
 const activeConsentText = import.meta.env.VITE_CONSENT_TEXT ?? 'Texto local de consentimiento no definitivo. Los operadores deben proporcionar la redacción aprobada del consentimiento antes de su uso en producción.';
 
@@ -115,18 +35,16 @@ type RegistrationState =
   | { status: 'success'; participantId: string }
   | { status: 'error' | 'conflict' | 'stale_consent'; message: string; activeConsentVersion?: string };
 
-type RegistrationControlName = 'fullName' | 'email' | 'phone' | 'personnelType' | 'militaryRank' | 'serviceStatus' | 'unit' | 'otherUnit' | 'consent';
+type RegistrationControlName = 'fullName' | 'email' | 'phone' | 'personnelType' | 'militaryRank' | 'consent';
 type FieldErrors = Partial<Record<RegistrationControlName, string>>;
 
-const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email', 'phone', 'personnelType', 'militaryRank', 'serviceStatus', 'unit', 'otherUnit', 'consent'];
+const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email', 'phone', 'personnelType', 'militaryRank', 'consent'];
 const VALIDATION_MESSAGES: Record<string, Record<string, string>> = {
   fullName: messages(['invalid_type', 'too_small', 'too_big'], 'Ingrese un nombre completo válido.'),
   email: messages(['invalid_type', 'invalid_string', 'too_big'], 'Ingrese un correo electrónico válido.'),
   phone: messages(['invalid_type', 'too_big'], 'Revise el teléfono ingresado.'),
-  unitOrOrganization: messages(['invalid_type', 'too_big'], 'Revise la unidad u organización.'),
   personnelType: messages(['invalid_type', 'invalid_enum_value'], 'Seleccione el tipo de personal.'),
   militaryRank: messages(['invalid_type', 'too_small', 'too_big', 'custom'], 'Seleccione un grado válido.'),
-  serviceStatus: messages(['invalid_type', 'invalid_enum_value', 'custom'], 'Seleccione una situación válida.'),
   'consent.accepted': messages(['invalid_type', 'invalid_literal'], 'Confirme el consentimiento para continuar.'),
   'consent.version': messages(['invalid_type', 'too_small', 'too_big'], 'Revise la versión activa del consentimiento.')
 };
@@ -136,7 +54,6 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
   const [state, setState] = useState<RegistrationState>({ status: 'idle' });
   const [consentVersion, setConsentVersion] = useState(activeConsentVersion);
   const [personnelType, setPersonnelType] = useState<'militar' | 'civil'>('civil');
-  const [unit, setUnit] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -165,17 +82,14 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           fullName: String(form.get('fullName') ?? ''),
           email: String(form.get('email') ?? ''),
           phone: optionalString(form.get('phone')),
-          unitOrOrganization: unit === OTHER_UNIT_VALUE ? optionalString(form.get('otherUnit')) : optionalString(unit),
           personnelType,
           militaryRank: personnelType === 'militar' ? optionalString(form.get('militaryRank')) : undefined,
-          serviceStatus: personnelType === 'militar' ? optionalString(form.get('serviceStatus')) : undefined,
           consent: { accepted: true, version: consentVersion }
         })
       });
       if (onSuccessfulRegistration) {
         formElement.reset();
         setPersonnelType('civil');
-        setUnit('');
         setState({ status: 'idle' });
         onSuccessfulRegistration();
         return;
@@ -259,59 +173,19 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           <FieldError name="personnelType" errors={fieldErrors} />
         </label>
         {personnelType === 'militar' && (
-          <div className="registration-field-row">
-            <label>
-              Grado
-              <select name="militaryRank" required defaultValue="" {...invalidProps('militaryRank')}>
-                <option value="" disabled>
-                  Seleccione un grado
-                </option>
-                {MILITARY_RANKS.map((rank) => (
-                  <option key={rank.code} value={`${rank.name} (${rank.code})`}>
-                    {rank.name} ({rank.code})
-                  </option>
-                ))}
-              </select>
-              <FieldError name="militaryRank" errors={fieldErrors} />
-            </label>
-            <label>
-              Situación
-              <select name="serviceStatus" required defaultValue="" {...invalidProps('serviceStatus')}>
-                <option value="" disabled>
-                  Seleccione una opción
-                </option>
-                {SERVICE_STATUSES.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
-                  </option>
-                ))}
-              </select>
-              <FieldError name="serviceStatus" errors={fieldErrors} />
-            </label>
-          </div>
-        )}
-        <label>
-          Unidad / Elemento
-          <select name="unit" value={unit} onChange={(event) => setUnit(event.target.value)} {...(unit === OTHER_UNIT_VALUE ? {} : invalidProps('unit'))}>
-            <option value="">No corresponde / prefiero no indicar</option>
-            {UNIT_GROUPS.map((group) => (
-              <optgroup key={group.label} label={group.label}>
-                {group.units.map((unitName) => (
-                  <option key={unitName} value={unitName}>
-                    {unitName}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-            <option value={OTHER_UNIT_VALUE}>Otra (indicar)</option>
-          </select>
-          {unit !== OTHER_UNIT_VALUE && <FieldError name="unit" errors={fieldErrors} />}
-        </label>
-        {unit === OTHER_UNIT_VALUE && (
           <label>
-            Indique su unidad u organización
-            <input name="otherUnit" required maxLength={120} {...invalidProps('otherUnit')} />
-            <FieldError name="otherUnit" errors={fieldErrors} />
+            Grado
+            <select name="militaryRank" required defaultValue="" {...invalidProps('militaryRank')}>
+              <option value="" disabled>
+                Seleccione un grado
+              </option>
+              {MILITARY_RANKS.map((rank) => (
+                <option key={rank.code} value={`${rank.name} (${rank.code})`}>
+                  {rank.name} ({rank.code})
+                </option>
+              ))}
+            </select>
+            <FieldError name="militaryRank" errors={fieldErrors} />
           </label>
         )}
         <section className="consent-panel">
@@ -355,7 +229,6 @@ function mapValidationDetails(details: unknown, form: HTMLFormElement): FieldErr
 }
 
 function validationControlName(field: string, form: HTMLFormElement): RegistrationControlName | undefined {
-  if (field === 'unitOrOrganization') return form.elements.namedItem('otherUnit') ? 'otherUnit' : 'unit';
   if (field === 'consent.accepted' || field === 'consent.version') return 'consent';
   const name = field as RegistrationControlName;
   return CONTROL_ORDER.includes(name) && form.elements.namedItem(name) ? name : undefined;

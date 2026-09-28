@@ -34,9 +34,6 @@ export const registrationRequestSchema = z
     if (value.personnelType === 'civil' && value.militaryRank !== undefined) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'militaryRank must not be provided when personnelType is civil', path: ['militaryRank'] });
     }
-    if (value.personnelType === 'militar' && !value.serviceStatus) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'serviceStatus is required when personnelType is militar', path: ['serviceStatus'] });
-    }
     if (value.personnelType === 'civil' && value.serviceStatus !== undefined) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'serviceStatus must not be provided when personnelType is civil', path: ['serviceStatus'] });
     }

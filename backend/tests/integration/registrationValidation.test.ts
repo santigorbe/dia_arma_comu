@@ -84,21 +84,31 @@ describe('registration validation and idempotency', () => {
     expect(db.participants.size).toBe(0);
   });
 
-  it('registers a military participant with their rank', async () => {
+  it('accepts compatible optional unit and service status fields from an old military client', async () => {
     const db = new FakeDb();
-    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'militar-ok@example.test', personnelType: 'militar', militaryRank: 'Coronel', serviceStatus: 'actividad' }));
+    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({
+      email: 'militar-ok@example.test',
+      personnelType: 'militar',
+      militaryRank: 'Coronel',
+      unitOrOrganization: 'Existing unit',
+      serviceStatus: 'actividad'
+    }));
     expect(response.status).toBe(201);
     const stored = [...db.participants.values()][0];
     expect(stored.personnel_type).toBe('militar');
     expect(stored.military_rank).toBe('Coronel');
+    expect(stored.unit_or_organization).toBe('Existing unit');
     expect(stored.service_status).toBe('actividad');
   });
 
-  it('requires a serviceStatus when personnelType is militar', async () => {
+  it('registers a military participant without a service status', async () => {
     const db = new FakeDb();
     const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({ email: 'militar-nosit@example.test', personnelType: 'militar', militaryRank: 'Coronel' }));
-    expect(response.status).toBe(400);
-    expect(db.participants.size).toBe(0);
+    expect(response.status).toBe(201);
+    const stored = [...db.participants.values()][0];
+    expect(stored.personnel_type).toBe('militar');
+    expect(stored.military_rank).toBe('Coronel');
+    expect(stored.service_status).toBeNull();
   });
 
   it('rejects a serviceStatus when personnelType is civil', async () => {
