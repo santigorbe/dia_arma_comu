@@ -50,6 +50,12 @@ export function PublicShell() {
     setRegistrationSuccess(true);
   }, []);
 
+  useEffect(() => {
+    if (!registrationSuccess) return;
+    const timeout = window.setTimeout(() => setRegistrationSuccess(false), 3_000);
+    return () => window.clearTimeout(timeout);
+  }, [registrationSuccess]);
+
   return <div className="public-app">
     <a className="skip-link" href="#main-content">Ir al contenido principal</a>
     <header className="site-header">

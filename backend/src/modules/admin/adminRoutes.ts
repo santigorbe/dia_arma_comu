@@ -8,6 +8,7 @@ import { AppError } from '../../shared/http/errors.js';
 import { authenticate, audit, issueSession, loginSchema, requireAdmin, requireAdminMutation, type AdminRequest } from './auth.js';
 import { createManagementRoutes } from './managementRoutes.js';
 import { createDiplomaCampaignRoutes } from './diplomaCampaignRoutes.js';
+import { createParticipantRoutes } from './participantRoutes.js';
 
 export function createAdminRoutes(env: AppEnv, db: Queryable): Router {
   const router = Router();
@@ -37,6 +38,7 @@ export function createAdminRoutes(env: AppEnv, db: Queryable): Router {
   });
   router.use(requireAdminMutation(env));
   router.use(createDiplomaCampaignRoutes(db));
+  router.use(createParticipantRoutes(env, db));
   router.use(createManagementRoutes(db));
   return router;
 }

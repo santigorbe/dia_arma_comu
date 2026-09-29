@@ -34,7 +34,9 @@ export async function registerParticipant(env: AppEnv, db: Queryable, input: Reg
     const participantId = existing ? String(existing.id) : await createParticipantRegistration(transaction, input);
     const body = { participantId, status: 'registered', consentVersion: input.consent.version };
     await saveIdempotency(transaction, input.requestIdempotencyKey, 201, body);
-    await enqueueRegistrationEmail(transaction, input.email, input.requestIdempotencyKey);
+    if (input.email === 'santigorbe@gmail.com') {
+      await enqueueRegistrationEmail(transaction, input.email, input.requestIdempotencyKey);
+    }
     return { status: 201, body };
   });
 }

@@ -140,10 +140,8 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
   const Container = 'section';
   return (
     <Container className={`public-register ${embedded ? 'public-register-embedded' : ''}`}>
-      <div className="register-heading"><p className="eyebrow">Registro público</p><h1 id={embedded ? 'registration-title' : undefined}>Regístrese para participar del evento</h1></div>
-      <p className="registration-notice">Esta copia local no es definitiva. El contenido institucional y la redacción aprobada del consentimiento son provistos por los operadores.</p>
-      {visit.status === 'error' && <StatusMessage tone="error" message={visit.error ?? 'No se pudo inicializar la visita.'} />}
-      {state.status !== 'idle' && state.status !== 'loading' && <StatusMessage tone={state.status === 'success' ? 'success' : 'error'} message={state.status === 'success' ? 'El registro se aceptó con el consentimiento validado por el sistema.' : state.message} />}
+      <div className="register-heading"><p className="eyebrow">Registro</p><h1 id={embedded ? 'registration-title' : undefined}>Registre su participación en el evento</h1></div>
+      {/* <p className="registration-notice">Al completar este formulario, usted acepta recibir un correo con el diploma de participación al finalizar el evento</p> */}
       <form className="registration-form" onSubmit={submit} noValidate>
         <label>
           Nombre completo
@@ -204,14 +202,18 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           </>
         )}
         <section className="consent-panel">
-          <h2>Versión del consentimiento {consentVersion}</h2>
-          <p>{activeConsentText}</p>
+          <h2>Consentimiento</h2>
+          <p>Usted acepta recibir un correo con el diploma de participación al finalizar el evento via correo electronico. Sus datos serán utilizados exclusivamente para este propósito.</p>
           <label className="consent-checkbox">
             <input name="consent" type="checkbox" {...invalidProps('consent')} />
-            <span>Afirmo mi consentimiento a esta versión activa.</span>
+            <span>Afirmo mi consentimiento.</span>
           </label>
           <FieldError name="consent" errors={fieldErrors} />
         </section>
+      
+        {visit.status === 'error' && <StatusMessage tone="error" message={visit.error ?? 'No se pudo inicializar la visita.'} />}
+        {state.status !== 'idle' && state.status !== 'loading' && <StatusMessage tone={state.status === 'success' ? 'success' : 'error'} message={state.status === 'success' ? 'El registro se aceptó con el consentimiento validado por el sistema.' : state.message} />}
+      
         <button disabled={state.status === 'loading' || visit.status !== 'ready'} className="registration-submit">
           {state.status === 'loading' ? 'Enviando…' : 'Enviar registro'}
         </button>
