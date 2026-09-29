@@ -23,7 +23,7 @@ services:
       CONSENT_TEXT: ${CONSENT_TEXT:-Texto local de consentimiento no definitivo.}
       WHATSAPP_PROVIDER_MODE: ${WHATSAPP_PROVIDER_MODE:-simulation}
       MAP_TILE_URL: ${MAP_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
-      INTEGRATIONS_API_TOKEN: ${INTEGRATIONS_API_TOKEN:?INTEGRATIONS_API_TOKEN must be set}
+      INTEGRATIONS_API_TOKEN: ${INTEGRATIONS_API_TOKEN:?183aebea04692b369106f9c4a6a9a4e79b0f2ce7de230065953a940b02b6d149}
       CARD_STORAGE_DIR: ${CARD_STORAGE_DIR:-/app/backend/storage/cards}
     depends_on:
       postgres:
