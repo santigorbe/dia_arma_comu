@@ -77,4 +77,17 @@ describe('registration confirmation outbox worker', () => {
 
     await expect(provider.send({ to: 'person@example.test', subject: 'Test', text: 'Test body' })).rejects.toThrow('brevo_429');
   });
+
+  it('encodes PDF attachments only in the Brevo payload', async () => {
+    let requestBody = '';
+    const request = vi.fn<typeof fetch>(async (_url, init) => {
+      requestBody = String(init?.body);
+      return new Response(JSON.stringify({ messageId: 'brevo-message-1' }), { status: 200 });
+    });
+    const provider = createEmailProvider({ ...testEnv, EMAIL_PROVIDER_MODE: 'real', BREVO_API_KEY: 'test-key', BREVO_FROM_EMAIL: 'events@example.test' }, request);
+
+    await provider.send({ to: 'person@example.test', subject: 'Diploma', text: 'Attached.', attachments: [{ name: 'diploma.pdf', content: Buffer.from('%PDF-test') }] });
+
+    expect(JSON.parse(requestBody)).toMatchObject({ attachment: [{ name: 'diploma.pdf', content: Buffer.from('%PDF-test').toString('base64') }] });
+  });
 });

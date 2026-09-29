@@ -68,4 +68,26 @@ describe('administrative API contracts', () => {
     expect(deletion.status).toBe(204);
     expect(db.audits).toHaveLength(5);
   });
+
+  it('creates an audited diploma campaign with an immutable participant and rank snapshot', async () => {
+    const { agent, db } = await authenticatedAdmin();
+    db.participants.set('military@example.test', { id: 'participant-1', full_name: 'Military Participant', email: 'military@example.test', military_rank: 'Captain' });
+    db.participants.set('civilian@example.test', { id: 'participant-2', full_name: 'Civilian Participant', email: 'civilian@example.test', military_rank: null });
+
+    const response = await agent.post('/api/admin/diploma-campaigns').set('Origin', origin).send({});
+
+    expect(response).toMatchObject({ status: 201, body: { campaign: { state: 'queued', audienceCount: 2 } } });
+    expect(db.diplomaDeliveries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ participant_id: 'participant-1', military_rank: 'Captain' }),
+      expect.objectContaining({ participant_id: 'participant-2', military_rank: 'NA' })
+    ]));
+    expect(db.audits).toHaveLength(2);
+  });
+
+  it('rejects unauthenticated, cross-origin, and malformed diploma campaign requests', async () => {
+    expect((await request(createApp(testEnv, new FakeDb())).post('/api/admin/diploma-campaigns').send({})).status).toBe(401);
+    const { agent } = await authenticatedAdmin();
+    expect((await agent.post('/api/admin/diploma-campaigns').send({})).status).toBe(403);
+    expect(await agent.post('/api/admin/diploma-campaigns').set('Origin', origin).send({ unexpected: true })).toMatchObject({ status: 400, body: { error: 'validation_failed' } });
+  });
 });

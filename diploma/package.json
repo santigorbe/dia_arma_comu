@@ -1,0 +1,32 @@
+{
+  "name": "diploma-pptx-a-pdf",
+  "version": "1.0.0",
+  "description": "Genera diplomas en PDF reemplazando placeholders de una plantilla PPTX.",
+  "main": "app.js",
+  "private": true,
+  "scripts": {
+    "start": "node app.js",
+    "test": "node --check app.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "pptx",
+    "pdf",
+    "libreoffice",
+    "plantillas"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@betteroffice/fonts": "^0.2.0",
+    "@xmldom/xmldom": "^0.9.12",
+    "pdfkit": "^0.15.0",
+    "pizzip": "^3.3.0",
+    "pptx-glimpse": "^5.3.0",
+    "svg-to-pdfkit": "^0.1.8"
+  },
+  "optionalDependencies": {
+    "libreoffice-convert": "^1.8.2"
+  }
+}

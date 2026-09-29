@@ -14,6 +14,8 @@ export class FakeDb implements Queryable {
   readonly audits: Record<string, unknown>[] = [];
   readonly admins = new Map<string, { id: string; password_hash: string; is_active: boolean }>();
   readonly invalidatedAdminTokens = new Set<string>();
+  readonly diplomaCampaigns: Array<{ id: string; state: string; audienceCount: number }> = [];
+  readonly diplomaDeliveries: Array<Record<string, unknown>> = [];
   readonly adminResources = new Map<string, Map<string, Record<string, unknown>>>();
   publicContent: Record<string, unknown>[] = [];
   publicSchedule: Record<string, unknown>[] = [];
@@ -82,6 +84,35 @@ export class FakeDb implements Queryable {
 
     if (text.includes('INSERT INTO admin_token_invalidations')) {
       this.invalidatedAdminTokens.add(String(values[0]));
+      return result([]);
+    }
+
+    if (text.includes('INSERT INTO diploma_campaigns')) {
+      const campaign = { id: `diploma-campaign-${this.diplomaCampaigns.length + 1}`, state: 'queued', audienceCount: 0 };
+      this.diplomaCampaigns.push(campaign);
+      return result([campaign]);
+    }
+
+    if (text.includes('INSERT INTO diploma_deliveries')) {
+      const campaignId = String(values[0]);
+      for (const participant of this.participants.values()) {
+        this.diplomaDeliveries.push({
+          campaign_id: campaignId,
+          participant_id: participant.id,
+          recipient_email: participant.email,
+          participant_name: participant.full_name,
+          military_rank: participant.military_rank || 'NA'
+        });
+      }
+      return result(this.diplomaDeliveries);
+    }
+
+    if (text.includes('UPDATE diploma_campaigns')) {
+      const campaign = this.diplomaCampaigns.find((entry) => entry.id === String(values.at(-1)));
+      if (campaign && values.length >= 3) {
+        campaign.audienceCount = Number(values[0]);
+        campaign.state = String(values[1]);
+      }
       return result([]);
     }
 

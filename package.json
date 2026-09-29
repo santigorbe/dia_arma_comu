@@ -23,6 +23,7 @@
     "migrate": "pnpm --filter @communications-day/backend run migrate",
     "bootstrap": "pnpm --filter @communications-day/backend run admin:bootstrap",
     "worker": "pnpm --filter @communications-day/backend run worker",
+    "worker:diplomas": "pnpm --filter @communications-day/backend run worker:diplomas",
     "smoke": "pnpm --filter @communications-day/backend run smoke",
     "docker:config": "docker compose config",
     "docker:up": "docker compose up --build",
