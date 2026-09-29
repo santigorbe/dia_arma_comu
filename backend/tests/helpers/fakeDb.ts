@@ -187,6 +187,22 @@ export class FakeDb implements Queryable {
       return result([]);
     }
 
+    if (text.includes('SELECT id, full_name, military_rank, phone, card_image_filename FROM participants WHERE id = $1')) {
+      const found = [...this.participants.values()].find((row) => row.id === values[0]);
+      return result(found ? [found] : []);
+    }
+
+    if (text.includes('FROM participants') && text.includes('WHERE phone IS NOT NULL')) {
+      const rows = [...this.participants.values()].filter((row) => Boolean(row.phone));
+      return result(rows);
+    }
+
+    if (text.includes('UPDATE participants SET card_image_filename')) {
+      const row = [...this.participants.values()].find((candidate) => candidate.id === values[1]);
+      if (row) row.card_image_filename = values[0];
+      return result([]);
+    }
+
     if (text.includes('INSERT INTO communication_jobs')) {
       const recipientRef = String(values[1]);
       const idempotencyKey = String(values[4]);

@@ -23,6 +23,8 @@ services:
       CONSENT_TEXT: ${CONSENT_TEXT:-Texto local de consentimiento no definitivo.}
       WHATSAPP_PROVIDER_MODE: ${WHATSAPP_PROVIDER_MODE:-simulation}
       MAP_TILE_URL: ${MAP_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
+      INTEGRATIONS_API_TOKEN: ${INTEGRATIONS_API_TOKEN:?INTEGRATIONS_API_TOKEN must be set}
+      CARD_STORAGE_DIR: ${CARD_STORAGE_DIR:-/app/backend/storage/cards}
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,6 +53,8 @@ services:
     environment: *backend-environment
     ports:
       - "3000:3000"
+    volumes:
+      - card-storage:/app/backend/storage/cards
     depends_on:
       db-init:
         condition: service_completed_successfully
@@ -99,3 +103,4 @@ services:
 
 volumes:
   postgres-data:
+  card-storage:

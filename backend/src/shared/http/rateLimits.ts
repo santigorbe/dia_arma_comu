@@ -1,14 +1,15 @@
 import type { RequestHandler } from 'express';
 import { AppError } from './errors.js';
 
-export type RateLimitClass = 'visits' | 'registration' | 'login' | 'verification' | 'admin';
+export type RateLimitClass = 'visits' | 'registration' | 'login' | 'verification' | 'admin' | 'integration';
 
 const defaults: Record<RateLimitClass, { windowMs: number; max: number }> = {
   visits: { windowMs: 60_000, max: 60 },
   registration: { windowMs: 60_000, max: 10 },
   login: { windowMs: 60_000, max: 5 },
   verification: { windowMs: 60_000, max: 30 },
-  admin: { windowMs: 60_000, max: 120 }
+  admin: { windowMs: 60_000, max: 120 },
+  integration: { windowMs: 60_000, max: 30 }
 };
 
 const buckets = new Map<string, { count: number; resetAt: number }>();

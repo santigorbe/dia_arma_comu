@@ -26,10 +26,15 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    allowedHosts: ['comunicaciones.ciber.ea.mil.ar'],
     proxy: {
       '/api': 'http://localhost:3000',
       '/health': 'http://localhost:3000'
     }
+  },
+  preview: {
+    port: 5173,
+    allowedHosts: ['comunicaciones.ciber.ea.mil.ar']
   },
   test: {
     environment: 'jsdom',

@@ -26,6 +26,8 @@ export const testEnv: AppEnv = {
   WHATSAPP_SENDER_ID: '',
   WHATSAPP_TEMPLATE_REGISTRATION: '',
   MAP_TILE_URL: 'https://tiles.example.test/{z}/{x}/{y}.png',
+  INTEGRATIONS_API_TOKEN: 'test-integration-token-with-enough-length',
+  CARD_STORAGE_DIR: '/tmp/diadelarma-test-cards',
   allowedOrigins: ['http://localhost:5173', 'http://localhost:3000'],
   providers: { emailReady: true, whatsappReady: true }
 };
