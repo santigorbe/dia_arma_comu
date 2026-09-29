@@ -14,8 +14,8 @@ export async function processNextDiplomaDelivery(db: Queryable, provider: EmailP
     const pdf = await generator.generate({ fullName: delivery.participant_name, grade: delivery.diploma_grade });
     const result = await provider.send({
       to: delivery.recipient_email,
-      subject: 'Your event diploma',
-      text: 'Your diploma is attached to this email.',
+      subject: 'Salutación por el 84° Aniversario del Arma de Comunicaciones y el Dia del Sistema de Computaciónde de Datos',
+      text: 'Salutación por el 84° Aniversario del Arma de Comunicaciones y el Dia del Sistema de Computaciónde de Datos',
       attachments: [{ name: 'Salutacion - DCEA.pdf', content: pdf }]
     });
     await recordDelivery(db, delivery, provider.mode, crypto.createHash('sha256').update(pdf).digest('hex'), result.providerId);
