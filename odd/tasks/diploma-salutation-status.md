@@ -59,6 +59,7 @@ Preserve the user's uncommitted changes in `diploma/plantilla_diploma.pptx`, `fr
 - `pnpm --filter @communications-day/frontend run lint`: passed.
 - `pnpm --filter @communications-day/backend run build`: passed.
 - Runtime check of `generarDiploma()` with the user-owned template: passed; generated `Salutacion - DCEA.pdf` after reporting design coverage `5/5`.
+- Native RDD assessment for `c12a24f` against its parent: medium risk, `under_budget` (227 authored lines); review is deferred until the committed slice reaches the delivery budget. Untracked, unrelated admin work was explicitly excluded using the native inventory proof.
 
 ## Next Step
 
