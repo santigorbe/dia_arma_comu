@@ -43,7 +43,7 @@ Unknown. No configured TDD mode was established from the inspected task context;
 - [x] **RIMC-01 — Resolve migration-sequence expectations**: Reconciled ordered migration and idempotency assertions against the verified unique `0001`–`0016` inventory.
 - [x] **RIMC-02 — Preserve migration semantic coverage**: Retained focused SQL assertions for relaxed service-status (`0014`) and card-image (`0016`) migrations, and retained `0015_diploma_campaigns.sql` in order.
 - [x] **RIMC-03 — Verify and hand off**: Ran focused backend integration tests and `git diff --check`; staged only the resolved migration and affected integration tests after passing verification.
-- [ ] **RIMC-04 — Parent finalization**: Parent completes final verification and commit.
+- [x] **RIMC-04 — Parent finalization**: Parent completed final verification and committed the merged result as `c09158d` (`fix(merge): resolve integration test conflicts`).
 
 ## Planned Checks
 
@@ -64,4 +64,4 @@ Final verification:
 - `git diff --check` passed with no output.
 - This task staged `backend/migrations/0016_participant_card_image.sql`, `backend/tests/integration/migrations.test.ts`, and `backend/tests/integration/databaseInitialization.test.ts`; this tracker remains unstaged for parent review.
 
-RIMC-01 through RIMC-03 are verified complete. RIMC-04 remains pending for parent finalization and commit.
+RIMC-01 through RIMC-04 are complete. The final candidate was reviewed and acknowledged by Gentle AI; its non-blocking warning about validating uploaded image bytes is recorded as separate follow-up work.
