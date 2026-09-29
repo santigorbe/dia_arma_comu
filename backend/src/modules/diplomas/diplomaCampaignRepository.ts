@@ -11,8 +11,13 @@ export async function createDiplomaCampaign(db: Queryable, adminId: string): Pro
   );
   const created = campaign.rows[0] as DiplomaCampaign;
   const deliveries = await db.query(
-    `INSERT INTO diploma_deliveries (campaign_id, participant_id, recipient_email, participant_name, military_rank)
-     SELECT $1, id, email, full_name, COALESCE(NULLIF(btrim(military_rank), ''), 'NA')
+    `INSERT INTO diploma_deliveries (campaign_id, participant_id, recipient_email, participant_name, military_rank, diploma_grade)
+     SELECT $1, id, email, full_name, COALESCE(NULLIF(btrim(military_rank), ''), 'NA'),
+       CASE
+         WHEN personnel_type = 'civil' THEN 'Señor/a'
+         WHEN service_status = 'retiro' THEN regexp_replace(btrim(military_rank), '\\s*\\([^)]*\\)\\s*$', '') || ' (R)'
+         ELSE regexp_replace(btrim(military_rank), '\\s*\\([^)]*\\)\\s*$', '')
+       END
      FROM participants`,
     [created.id]
   );

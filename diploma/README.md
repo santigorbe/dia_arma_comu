@@ -1,6 +1,6 @@
 # Diploma PPTX -> PDF
 
-Este proyecto reemplaza datos de un participante en `plantilla_diploma.pptx`, crea un PPTX temporal y lo convierte a `diploma_Juan_Perez.pdf`.
+Este proyecto reemplaza datos de un participante en `plantilla_diploma.pptx`, crea un PPTX temporal y lo convierte a `Salutacion - DCEA.pdf`.
 
 ## ¿Hace falta instalar LibreOffice?
 
@@ -86,7 +86,7 @@ npm start
 El resultado esperado es:
 
 ```text
-diploma_Juan_Perez.pdf
+Salutacion - DCEA.pdf
 ```
 
 El directorio temporal del PPTX se crea con `fs.mkdtemp()` y se elimina en un bloque `finally`, incluso si la conversión falla.
@@ -156,7 +156,7 @@ PowerPoint puede partir una etiqueta en varios elementos XML, por ejemplo `[Nomb
 2. `replacePlaceholdersInPptx()` procesa los XML de diapositivas y notas.
 3. Se escribe `diploma.pptx` en un directorio temporal único.
 4. `convertPptxToPdf()` convierte el temporal a PDF con el motor seleccionado.
-5. Se guarda el PDF con el nombre del participante.
+5. Se guarda el PDF como `Salutacion - DCEA.pdf`.
 6. El directorio temporal se elimina siempre.
 
 En una aplicación real, `participante` puede ser el resultado validado de un `req.body`, y el PDF puede enviarse como respuesta HTTP o almacenarse en un bucket. No se debe usar directamente una ruta enviada por el usuario para leer o escribir archivos.

@@ -69,17 +69,19 @@ describe('administrative API contracts', () => {
     expect(db.audits).toHaveLength(5);
   });
 
-  it('creates an audited diploma campaign with an immutable participant and rank snapshot', async () => {
+  it('creates an audited diploma campaign with immutable presentation-ready grade snapshots', async () => {
     const { agent, db } = await authenticatedAdmin();
-    db.participants.set('military@example.test', { id: 'participant-1', full_name: 'Military Participant', email: 'military@example.test', military_rank: 'Captain' });
-    db.participants.set('civilian@example.test', { id: 'participant-2', full_name: 'Civilian Participant', email: 'civilian@example.test', military_rank: null });
+    db.participants.set('active@example.test', { id: 'participant-1', full_name: 'Active Participant', email: 'active@example.test', personnel_type: 'militar', military_rank: 'Sargento (SG)', service_status: 'actividad' });
+    db.participants.set('retired@example.test', { id: 'participant-2', full_name: 'Retired Participant', email: 'retired@example.test', personnel_type: 'militar', military_rank: 'Coronel (CR)', service_status: 'retiro' });
+    db.participants.set('civilian@example.test', { id: 'participant-3', full_name: 'Civilian Participant', email: 'civilian@example.test', personnel_type: 'civil', military_rank: null, service_status: null });
 
     const response = await agent.post('/api/admin/diploma-campaigns').set('Origin', origin).send({});
 
-    expect(response).toMatchObject({ status: 201, body: { campaign: { state: 'queued', audienceCount: 2 } } });
+    expect(response).toMatchObject({ status: 201, body: { campaign: { state: 'queued', audienceCount: 3 } } });
     expect(db.diplomaDeliveries).toEqual(expect.arrayContaining([
-      expect.objectContaining({ participant_id: 'participant-1', military_rank: 'Captain' }),
-      expect.objectContaining({ participant_id: 'participant-2', military_rank: 'NA' })
+      expect.objectContaining({ participant_id: 'participant-1', military_rank: 'Sargento (SG)', diploma_grade: 'Sargento' }),
+      expect.objectContaining({ participant_id: 'participant-2', military_rank: 'Coronel (CR)', diploma_grade: 'Coronel (R)' }),
+      expect.objectContaining({ participant_id: 'participant-3', military_rank: 'NA', diploma_grade: 'Señor/a' })
     ]));
     expect(db.audits).toHaveLength(2);
   });

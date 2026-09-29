@@ -35,16 +35,17 @@ type RegistrationState =
   | { status: 'success'; participantId: string }
   | { status: 'error' | 'conflict' | 'stale_consent'; message: string; activeConsentVersion?: string };
 
-type RegistrationControlName = 'fullName' | 'email' | 'phone' | 'personnelType' | 'militaryRank' | 'consent';
+type RegistrationControlName = 'fullName' | 'email' | 'phone' | 'personnelType' | 'militaryRank' | 'serviceStatus' | 'consent';
 type FieldErrors = Partial<Record<RegistrationControlName, string>>;
 
-const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email', 'phone', 'personnelType', 'militaryRank', 'consent'];
+const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email', 'phone', 'personnelType', 'militaryRank', 'serviceStatus', 'consent'];
 const VALIDATION_MESSAGES: Record<string, Record<string, string>> = {
   fullName: messages(['invalid_type', 'too_small', 'too_big'], 'Ingrese un nombre completo válido.'),
   email: messages(['invalid_type', 'invalid_string', 'too_big'], 'Ingrese un correo electrónico válido.'),
   phone: messages(['invalid_type', 'too_big'], 'Revise el teléfono ingresado.'),
   personnelType: messages(['invalid_type', 'invalid_enum_value'], 'Seleccione el tipo de personal.'),
   militaryRank: messages(['invalid_type', 'too_small', 'too_big', 'custom'], 'Seleccione un grado válido.'),
+  serviceStatus: messages(['invalid_type', 'invalid_enum_value', 'custom'], 'Seleccione una situación válida.'),
   'consent.accepted': messages(['invalid_type', 'invalid_literal'], 'Confirme el consentimiento para continuar.'),
   'consent.version': messages(['invalid_type', 'too_small', 'too_big'], 'Revise la versión activa del consentimiento.')
 };
@@ -84,6 +85,7 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           phone: optionalString(form.get('phone')),
           personnelType,
           militaryRank: personnelType === 'militar' ? optionalString(form.get('militaryRank')) : undefined,
+          serviceStatus: personnelType === 'militar' ? optionalString(form.get('serviceStatus')) : undefined,
           consent: { accepted: true, version: consentVersion }
         })
       });
@@ -173,20 +175,33 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           <FieldError name="personnelType" errors={fieldErrors} />
         </label>
         {personnelType === 'militar' && (
-          <label>
-            Grado
-            <select name="militaryRank" required defaultValue="" {...invalidProps('militaryRank')}>
-              <option value="" disabled>
-                Seleccione un grado
-              </option>
-              {MILITARY_RANKS.map((rank) => (
-                <option key={rank.code} value={`${rank.name} (${rank.code})`}>
-                  {rank.name} ({rank.code})
+          <>
+            <label>
+              Grado
+              <select name="militaryRank" required defaultValue="" {...invalidProps('militaryRank')}>
+                <option value="" disabled>
+                  Seleccione un grado
                 </option>
-              ))}
-            </select>
-            <FieldError name="militaryRank" errors={fieldErrors} />
-          </label>
+                {MILITARY_RANKS.map((rank) => (
+                  <option key={rank.code} value={`${rank.name} (${rank.code})`}>
+                    {rank.name} ({rank.code})
+                  </option>
+                ))}
+              </select>
+              <FieldError name="militaryRank" errors={fieldErrors} />
+            </label>
+            <label>
+              Situación
+              <select name="serviceStatus" required defaultValue="" {...invalidProps('serviceStatus')}>
+                <option value="" disabled>
+                  Seleccione una situación
+                </option>
+                <option value="actividad">En actividad</option>
+                <option value="retiro">Retirado</option>
+              </select>
+              <FieldError name="serviceStatus" errors={fieldErrors} />
+            </label>
+          </>
         )}
         <section className="consent-panel">
           <h2>Versión del consentimiento {consentVersion}</h2>

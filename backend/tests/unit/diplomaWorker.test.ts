@@ -14,7 +14,7 @@ class DiplomaDb implements Queryable {
       if (this.state !== 'pending') return result([]);
       this.state = 'processing';
       this.attempts += 1;
-      return result([{ id: 'delivery-1', campaign_id: 'campaign-1', recipient_email: 'participant@example.test', participant_name: 'Participant Name', military_rank: 'NA', attempts: this.attempts }]);
+      return result([{ id: 'delivery-1', campaign_id: 'campaign-1', recipient_email: 'participant@example.test', participant_name: 'Participant Name', diploma_grade: 'Señor/a', attempts: this.attempts }]);
     }
     if (text.includes("SET state = 'delivered'")) this.state = 'delivered';
     if (text.includes('SET state = $1, claimed_by')) this.state = String(values[0]);
@@ -34,8 +34,8 @@ describe('diploma delivery worker', () => {
 
     await expect(processNextDiplomaDelivery(db, provider, generator, 'worker-test', () => {})).resolves.toBe(true);
 
-    expect(generator.generate).toHaveBeenCalledWith({ fullName: 'Participant Name', militaryRank: 'NA' });
-    expect(provider.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'participant@example.test', attachments: [{ name: 'diploma.pdf', content: Buffer.from('%PDF-test') }] }));
+    expect(generator.generate).toHaveBeenCalledWith({ fullName: 'Participant Name', grade: 'Señor/a' });
+    expect(provider.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'participant@example.test', attachments: [{ name: 'Salutacion - DCEA.pdf', content: Buffer.from('%PDF-test') }] }));
     expect(db.state).toBe('delivered');
     expect(db.statements.some((statement) => statement.includes('pdf_sha256'))).toBe(true);
   });

@@ -72,7 +72,7 @@ describe('RegisterPage', () => {
     expect(payload).not.toHaveProperty('militaryRank');
   });
 
-  it('reveals and sends the Grado field when personnel is militar', async () => {
+  it('reveals and sends required Grado and Situación fields when personnel is militar', async () => {
     let payload: Record<string, unknown> | undefined;
     server.use(http.post('/api/public/registrations', async ({ request }) => {
       payload = await request.json() as Record<string, unknown>;
@@ -84,13 +84,17 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'militar' } });
     const rank = await screen.findByLabelText(/Grado/i);
     expect(rank.hasAttribute('required')).toBe(true);
+    const serviceStatus = screen.getByLabelText(/Situación/i);
+    expect(serviceStatus.hasAttribute('required')).toBe(true);
+    expect(screen.getByRole('option', { name: 'En actividad' }).getAttribute('value')).toBe('actividad');
+    expect(screen.getByRole('option', { name: 'Retirado' }).getAttribute('value')).toBe('retiro');
     fireEvent.change(rank, { target: { value: 'Coronel (CR)' } });
+    fireEvent.change(serviceStatus, { target: { value: 'retiro' } });
     fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
 
     expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
-    expect(payload).toMatchObject({ personnelType: 'militar', militaryRank: 'Coronel (CR)' });
+    expect(payload).toMatchObject({ personnelType: 'militar', militaryRank: 'Coronel (CR)', serviceStatus: 'retiro' });
     expect(payload).not.toHaveProperty('unitOrOrganization');
-    expect(payload).not.toHaveProperty('serviceStatus');
   });
 
   it('hides Grado again after switching back to civil', async () => {
@@ -100,6 +104,7 @@ describe('RegisterPage', () => {
     expect(await screen.findByLabelText(/Grado/i)).toBeTruthy();
     fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'civil' } });
     expect(screen.queryByLabelText(/Grado/i)).toBeNull();
+    expect(screen.queryByLabelText(/Situación/i)).toBeNull();
   });
 
   it('recovers from stale consent responses with the active version', async () => {
@@ -152,7 +157,8 @@ describe('RegisterPage', () => {
 
     const rank = await screen.findByLabelText(/Grado/i);
     expect(rank.getAttribute('aria-invalid')).toBe('true');
-    expect(screen.queryByLabelText(/Situación/i)).toBeNull();
+    const serviceStatus = screen.getByLabelText(/Situación/i);
+    expect(serviceStatus.getAttribute('aria-invalid')).toBe('true');
     expect(document.activeElement).toBe(rank);
   });
 

@@ -4,19 +4,19 @@ import { createLogger, type LogRecord } from '../../shared/logging/logger.js';
 import type { EmailProvider } from '../communications/emailProvider.js';
 import type { DiplomaGenerator } from './diplomaGenerator.js';
 
-type ClaimedDelivery = { id: string; campaign_id: string; recipient_email: string; participant_name: string; military_rank: string; attempts: number };
+type ClaimedDelivery = { id: string; campaign_id: string; recipient_email: string; participant_name: string; diploma_grade: string; attempts: number };
 
 export async function processNextDiplomaDelivery(db: Queryable, provider: EmailProvider, generator: DiplomaGenerator, workerId: string, writeLog: (record: LogRecord) => void = console.info): Promise<boolean> {
   const delivery = await claimDueDiplomaDelivery(db, workerId);
   if (!delivery) return false;
   const logger = createLogger(writeLog);
   try {
-    const pdf = await generator.generate({ fullName: delivery.participant_name, militaryRank: delivery.military_rank });
+    const pdf = await generator.generate({ fullName: delivery.participant_name, grade: delivery.diploma_grade });
     const result = await provider.send({
       to: delivery.recipient_email,
       subject: 'Your event diploma',
       text: 'Your diploma is attached to this email.',
-      attachments: [{ name: 'diploma.pdf', content: pdf }]
+      attachments: [{ name: 'Salutacion - DCEA.pdf', content: pdf }]
     });
     await recordDelivery(db, delivery, provider.mode, crypto.createHash('sha256').update(pdf).digest('hex'), result.providerId);
     logger.info('Diploma delivery completed', { deliveryId: delivery.id, attempt: delivery.attempts, providerMode: provider.mode });
@@ -39,7 +39,7 @@ async function claimDueDiplomaDelivery(db: Queryable, workerId: string): Promise
      UPDATE diploma_deliveries AS delivery
      SET state = 'processing', attempts = attempts + 1, claimed_by = $1, claimed_until = now() + interval '5 minutes', updated_at = now()
      FROM candidate WHERE delivery.id = candidate.id
-     RETURNING delivery.id, delivery.campaign_id, delivery.recipient_email, delivery.participant_name, delivery.military_rank, delivery.attempts`,
+      RETURNING delivery.id, delivery.campaign_id, delivery.recipient_email, delivery.participant_name, delivery.diploma_grade, delivery.attempts`,
     [workerId]
   );
   const delivery = result.rows[0] as ClaimedDelivery | undefined;

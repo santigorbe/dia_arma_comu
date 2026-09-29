@@ -758,14 +758,9 @@ async function generarDiploma({
       engine: pdfEngine,
     });
 
-    // 6. Construir el nombre solicitado y guardar el PDF final.
-    const nombreParticipante = datos.nombre || datos.nombre_completo;
-    if (!nombreParticipante) {
-      throw new Error('Se necesita `nombre` o `nombre_completo` para el nombre del PDF.');
-    }
-
+    // 6. Guardar el PDF final con el nombre acordado para la entrega.
     await fs.mkdir(outputDir, { recursive: true });
-    pdfPath = path.join(outputDir, `diploma_${slugify(nombreParticipante)}.pdf`);
+    pdfPath = path.join(outputDir, 'Salutacion - DCEA.pdf');
     await fs.writeFile(pdfPath, pdfBuffer);
 
     return {

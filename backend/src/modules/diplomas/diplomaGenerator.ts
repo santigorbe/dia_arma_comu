@@ -8,17 +8,17 @@ type LegacyGenerator = {
 };
 
 export type DiplomaGenerator = {
-  generate(input: { fullName: string; militaryRank: string }): Promise<Buffer>;
+  generate(input: { fullName: string; grade: string }): Promise<Buffer>;
 };
 
 /** ESM boundary around the legacy CommonJS diploma renderer. */
 export function createDiplomaGenerator(modulePath = path.resolve(process.cwd(), 'diploma/app.js')): DiplomaGenerator {
   const legacy = createRequire(import.meta.url)(modulePath) as LegacyGenerator;
   return {
-    async generate({ fullName, militaryRank }) {
+    async generate({ fullName, grade }) {
       const outputDir = await mkdtemp(path.join(os.tmpdir(), 'diploma-output-'));
       try {
-        const result = await legacy.generarDiploma({ datos: { nombre: fullName, grado: militaryRank }, outputDir });
+        const result = await legacy.generarDiploma({ datos: { nombre: fullName, grado: grade }, outputDir });
         return await readFile(result.pdfPath);
       } finally {
         await rm(outputDir, { recursive: true, force: true });

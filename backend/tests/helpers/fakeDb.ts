@@ -101,7 +101,8 @@ export class FakeDb implements Queryable {
           participant_id: participant.id,
           recipient_email: participant.email,
           participant_name: participant.full_name,
-          military_rank: participant.military_rank || 'NA'
+          military_rank: participant.military_rank || 'NA',
+          diploma_grade: diplomaGrade(participant)
         });
       }
       return result(this.diplomaDeliveries);
@@ -285,6 +286,12 @@ export class FakeDb implements Queryable {
     if (table === 'schedule_entries') return { ...base, title: values[0], description: values[1], startsAt: values[2], endsAt: values[3], location: values[4] };
     return { ...base, label: values[0], description: values[1], latitude: values[2], longitude: values[3] };
   }
+}
+
+function diplomaGrade(participant: Record<string, unknown>) {
+  if (participant.personnel_type !== 'militar') return 'Señor/a';
+  const rank = String(participant.military_rank ?? '').trim().replace(/\s*\([^)]*\)\s*$/, '');
+  return participant.service_status === 'retiro' ? `${rank} (R)` : rank;
 }
 
 function result(rows: Record<string, unknown>[]): QueryResult {
