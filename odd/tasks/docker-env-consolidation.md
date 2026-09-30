@@ -3,7 +3,7 @@
 **Status:** Complete locally
 **Delivery route:** `delegated`
 **Delivery strategy:** `ask-on-risk`
-**Commit evidence:** `feat(config): consolidate Docker environment sources` (single work-unit commit; commit hash recorded in the delivery report)
+**Commit evidence:** `4331694367876f473bad4573146d76a50f2a4fe2 feat(config): consolidate Docker environment sources` (single work-unit commit)
 
 ## Objective
 
@@ -66,9 +66,9 @@ This is a substantial cross-boundary configuration change involving multiple non
 
 ### Tracker Mirror
 
-- Attempted to mirror this tracker in Engram before the first configuration edit using topic key `odd/docker-env-consolidation/tasks` and project `dia_arma`.
+- Attempted to update the complete Engram mirror using topic key `odd/docker-env-consolidation/tasks` and project `dia_arma`.
 - Engram rejected the write because multiple active runtime sessions match this project and directory, and no authoritative session identity is available to select one safely.
-- Per the task constraint, this tracker remains the local source for the ODD evidence while implementation continues; no session identity was guessed.
+- This tracker remains the local source for the ODD evidence; no session identity was guessed.
 
 ### DEC-001 — Confirmed Contracts
 
@@ -113,6 +113,13 @@ This is a substantial cross-boundary configuration change involving multiple non
 ### DEC-006 — Work-Unit Review
 
 - Review scope: Compose runtime source, frontend Vite build arguments, removal of the unused consent environment read, root configuration guidance, and this tracker.
-- Intended conventional commit: `feat(config): consolidate Docker environment sources`.
+- Work-unit commit: `4331694367876f473bad4573146d76a50f2a4fe2 feat(config): consolidate Docker environment sources`.
 - Staging boundary excludes the pre-existing changes in both administrative route files and `odd/tasks/automatic-registration-diploma.md`; ignored local `.env` normalization and ignored `backend/.env` deletion are intentionally not staged.
 - Rollback removes only this Docker environment consolidation work unit, preserving unrelated application and administrative behavior.
+
+### Native Review Assessment
+
+- Assessment: `gentle-ai.review-assessment/v1` against base `HEAD^`.
+- Result: risk `medium`; reason `configuration_change` in `.env.example`; 157 changed lines.
+- Review status: `review_due: false`; `review_due_reason: under_budget`.
+- No approval is recorded. Review remains pending until a future accumulated portion reaches the review budget.
