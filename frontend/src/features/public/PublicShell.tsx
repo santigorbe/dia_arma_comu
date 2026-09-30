@@ -69,7 +69,7 @@ export function PublicShell() {
       </nav>
     </header>
     <main id="main-content" className="public-main"><Outlet context={{ openRegistration } satisfies PublicShellContext} /></main>
-    {registrationSuccess && <div className="registration-success-popup" role="status" aria-live="polite">El registro fue aceptado. Recibirá la confirmación por correo electrónico.</div>}
+    {registrationSuccess && <div className="registration-success-popup" role="status" aria-live="polite">El registro fue aceptado.</div>}
     <nav className="mobile-nav" aria-label="Navegación móvil">
       <NavLink to="/" end><FontAwesomeIcon icon={faHouse} aria-hidden="true" /><span>Inicio</span></NavLink>
       <NavLink to="/cronograma"><FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" /><span>Cronograma</span></NavLink>

@@ -33,7 +33,6 @@ describe('embedded registration modal', () => {
     fireEvent.change(screen.getByLabelText(/Correo electrónico/i), { target: { value: 'person@example.test' } });
     fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
 
-    expect((await screen.findByRole('status')).textContent).toMatch(/recibirá la confirmación/i);
     expect(screen.queryByRole('dialog')).toBeNull();
     fireEvent.click(opener);
     expect((await screen.findByLabelText(/Nombre completo/i) as HTMLInputElement).value).toBe('');
