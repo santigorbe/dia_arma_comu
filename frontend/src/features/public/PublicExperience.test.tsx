@@ -86,7 +86,7 @@ describe('Public event experience', () => {
     expect(screen.getByRole('link', { name: /VER CRONOGRAMA/i }).getAttribute('href')).toBe('/cronograma');
     expect(screen.getByRole('link', { name: /VER MAPA OPERATIVO/i }).getAttribute('href')).toBe('/mapa');
     expect(screen.getByText('Ejército Argentino')).toBeTruthy();
-    expect(screen.getByText('COMUNICACIONES E INFORMÁTICA')).toBeTruthy();
+    expect(screen.getByText('DGCICD')).toBeTruthy();
     expect(screen.getByRole('img', { name: 'Logo de Ciberdefensa' })).toBeTruthy();
     const menu = screen.getByRole('button', { name: 'Abrir menú de navegación' });
     fireEvent.click(menu);

@@ -59,7 +59,7 @@ export function PublicShell() {
   return <div className="public-app">
     <a className="skip-link" href="#main-content">Ir al contenido principal</a>
     <header className="site-header">
-      <NavLink to="/" className="brand" aria-label="Página principal del evento"><img className="brand-logo" src="/logo_ciber.png" alt="Logo de Ciberdefensa" /><span className="brand-copy"><span>Ejército Argentino</span><span>COMUNICACIONES E INFORMÁTICA</span></span></NavLink>
+      <NavLink to="/" className="brand" aria-label="Página principal del evento"><img className="brand-logo" src="/logo_ciber.png" alt="Logo de Ciberdefensa" /><span className="brand-copy"><span>Ejército Argentino</span><span>DGCICD</span></span></NavLink>
       <button ref={menuButton} className="menu-button" aria-label={menuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'} title={menuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'} aria-expanded={menuOpen} aria-controls="site-navigation" onClick={() => setMenuOpen((value) => !value)}><FontAwesomeIcon icon={faBars} aria-hidden="true" /></button>
       <nav id="site-navigation" className={menuOpen ? 'site-nav open' : 'site-nav'} aria-label="Navegación principal">
         <NavLink to="/" end onClick={() => setMenuOpen(false)}>Inicio</NavLink>
