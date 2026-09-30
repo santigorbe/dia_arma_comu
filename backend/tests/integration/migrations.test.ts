@@ -23,7 +23,8 @@ describe('foundation migrations', () => {
        '0014_relax_participant_service_status.sql',
        '0015_diploma_campaigns.sql',
        '0016_participant_card_image.sql',
-       '0017_diploma_delivery_grade.sql'
+        '0017_diploma_delivery_grade.sql',
+        '0018_registration_diploma_deliveries.sql'
     ]);
     expect(migrations.every((migration) => migration.sql.trim().length > 0)).toBe(true);
   });
@@ -32,10 +33,10 @@ describe('foundation migrations', () => {
     const db = new FakeDb();
     const migrations = await loadMigrations();
 
-    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017']);
+    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018']);
     await expect(runMigrations(db, migrations)).resolves.toEqual([]);
 
-    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017']);
+    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018']);
   });
 
   it('seeds published fictional activities with stable IDs and preserves existing rows', async () => {
@@ -137,6 +138,18 @@ describe('foundation migrations', () => {
     expect(sql).toContain("upper(btrim(military_rank)) = 'NA' THEN 'Señor/a'");
     expect(sql).toContain('ALTER COLUMN diploma_grade SET NOT NULL');
     expect(sql).not.toMatch(/\bDELETE\b|\bTRUNCATE\b/i);
+  });
+
+  it('adds traceable registration-origin campaigns with one campaign per participant', async () => {
+    const migration = (await loadMigrations()).find((entry) => entry.name === '0018_registration_diploma_deliveries.sql');
+    expect(migration).toBeDefined();
+    const sql = migration!.sql;
+
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS origin text NOT NULL DEFAULT 'admin'");
+    expect(sql).toContain('registration_participant_id uuid REFERENCES participants(id)');
+    expect(sql).toContain("origin = 'registration' AND created_by IS NULL");
+    expect(sql).toContain('diploma_campaigns_registration_participant_unique');
+    expect(sql).toContain("WHERE origin = 'registration'");
   });
 
   it('rolls back failed migrations without exposing the failing SQL as a readiness detail', async () => {
