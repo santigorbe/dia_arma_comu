@@ -7,7 +7,7 @@ import type { Queryable } from '../../db/pool.js';
 import { withinTransaction } from '../../db/transaction.js';
 import { AppError } from '../../shared/http/errors.js';
 import { validateRequest } from '../../shared/http/validation.js';
-import type { AdminRequest } from './auth.js';
+import { requireAdminMutation, type AdminRequest } from './auth.js';
 import { deleteParticipantByEmail } from './participantDeletionRepository.js';
 
 const deleteParticipantSchema = z.object({
@@ -17,7 +17,20 @@ const deleteParticipantSchema = z.object({
 export function createParticipantRoutes(env: AppEnv, db: Queryable): Router {
   const router = Router();
 
-  router.delete('/participants/by-email', validateRequest({ body: deleteParticipantSchema }), async (request: AdminRequest, response, next) => {
+  router.get('/participants', async (_request, response, next) => {
+    try {
+      const participants = await db.query(
+        `SELECT id, full_name AS "fullName", email, phone, personnel_type AS "personnelType", military_rank AS "militaryRank", service_status AS "serviceStatus", created_at AS "createdAt"
+         FROM participants
+         ORDER BY created_at DESC, id ASC`
+      );
+      response.json({ participants: participants.rows });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.delete('/participants/by-email', requireAdminMutation(env), validateRequest({ body: deleteParticipantSchema }), async (request: AdminRequest, response, next) => {
     try {
       const participant = await withinTransaction(db, (transaction) => deleteParticipantByEmail(transaction, request.body.email, request.admin!.sub));
       if (!participant) throw new AppError(404, 'participant_not_found');

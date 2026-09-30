@@ -18,6 +18,7 @@ export async function deleteParticipantByEmail(db: Queryable, email: string, adm
   await db.query('DELETE FROM certificates WHERE participant_id = $1', [participant.id]);
   await db.query('DELETE FROM diploma_delivery_attempts WHERE delivery_id IN (SELECT id FROM diploma_deliveries WHERE participant_id = $1)', [participant.id]);
   await db.query('DELETE FROM diploma_deliveries WHERE participant_id = $1', [participant.id]);
+  await db.query("DELETE FROM diploma_campaigns WHERE origin = 'registration' AND registration_participant_id = $1", [participant.id]);
   await db.query('DELETE FROM communication_attempts WHERE job_id IN (SELECT id FROM communication_jobs WHERE recipient_ref = $1)', [email]);
   await db.query('DELETE FROM communication_jobs WHERE recipient_ref = $1', [email]);
   await db.query('DELETE FROM registration_consents WHERE participant_id = $1', [participant.id]);

@@ -92,4 +92,28 @@ describe('administrative API contracts', () => {
     expect((await agent.post('/api/admin/diploma-campaigns').send({})).status).toBe(403);
     expect(await agent.post('/api/admin/diploma-campaigns').set('Origin', origin).send({ unexpected: true })).toMatchObject({ status: 400, body: { error: 'validation_failed' } });
   });
+
+  it('deletes only the selected participant registration campaign and delivery', async () => {
+    const { agent, db } = await authenticatedAdmin();
+    db.participants.set('registered@example.test', { id: 'participant-1', email: 'registered@example.test', card_image_filename: null });
+    db.diplomaCampaigns.push(
+      { id: 'registration-campaign', state: 'queued', audienceCount: 1, origin: 'registration', registration_participant_id: 'participant-1' },
+      { id: 'other-registration-campaign', state: 'queued', audienceCount: 1, origin: 'registration', registration_participant_id: 'participant-2' },
+      { id: 'admin-campaign', state: 'queued', audienceCount: 1, origin: 'admin' }
+    );
+    db.diplomaDeliveries.push(
+      { campaign_id: 'registration-campaign', participant_id: 'participant-1' },
+      { campaign_id: 'other-registration-campaign', participant_id: 'participant-2' },
+      { campaign_id: 'admin-campaign', participant_id: 'participant-2' }
+    );
+
+    const response = await agent.delete('/api/admin/participants/by-email').set('Origin', origin).send({ email: 'registered@example.test' });
+
+    expect(response.status).toBe(204);
+    expect(db.participants.has('registered@example.test')).toBe(false);
+    expect(db.diplomaDeliveries).not.toContainEqual(expect.objectContaining({ participant_id: 'participant-1' }));
+    expect(db.diplomaCampaigns).not.toContainEqual(expect.objectContaining({ id: 'registration-campaign' }));
+    expect(db.diplomaCampaigns).toContainEqual(expect.objectContaining({ id: 'other-registration-campaign' }));
+    expect(db.diplomaCampaigns).toContainEqual(expect.objectContaining({ id: 'admin-campaign' }));
+  });
 });

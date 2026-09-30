@@ -25,6 +25,7 @@ export function createAdminRoutes(env: AppEnv, db: Queryable): Router {
   });
   router.use(requireAdmin(env, db));
   router.get('/session', (request: AdminRequest, response) => response.json({ admin: { id: request.admin!.sub } }));
+  router.use(createParticipantRoutes(env, db));
   router.post('/logout', requireAdminMutation(env), async (request: AdminRequest, response, next) => {
     try {
       const token = request.cookies[env.AUTH_COOKIE_NAME] as string;
@@ -38,7 +39,6 @@ export function createAdminRoutes(env: AppEnv, db: Queryable): Router {
   });
   router.use(requireAdminMutation(env));
   router.use(createDiplomaCampaignRoutes(db));
-  router.use(createParticipantRoutes(env, db));
   router.use(createManagementRoutes(db));
   return router;
 }
