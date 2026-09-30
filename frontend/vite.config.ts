@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { shouldCachePublicRead } from './src/pwa/cachePolicy';
 
 export default defineConfig({
   plugins: [
@@ -13,7 +12,11 @@ export default defineConfig({
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
-            urlPattern: ({ url, request }) => shouldCachePublicRead(url, request.method),
+            // Inlined on purpose: workbox serializes this function into sw.js, so imports are out of scope there.
+            // Keep in sync with src/pwa/cachePolicy.ts.
+            urlPattern: ({ url, request }) =>
+              request.method === 'GET' &&
+              ['/api/public/content', '/api/public/schedule', '/api/public/map'].includes(url.pathname),
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'public-read-cache',
@@ -26,7 +29,7 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
-    allowedHosts: ['comunicaciones.ciber.ea.mil.ar'],
+    allowedHosts: ['comunicaciones.ciber.ea.mil.ar', 'dia-del-arma-de-comunicaciones.flinvent.net', 'dia-web'],
     proxy: {
       '/api': 'http://localhost:3000',
       '/health': 'http://localhost:3000'
@@ -34,7 +37,11 @@ export default defineConfig({
   },
   preview: {
     port: 5173,
-    allowedHosts: ['comunicaciones.ciber.ea.mil.ar']
+    proxy: {
+      '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:3000',
+      '/health': process.env.API_PROXY_TARGET ?? 'http://localhost:3000'
+    },
+    allowedHosts: ['comunicaciones.ciber.ea.mil.ar', 'dia-del-arma-de-comunicaciones.flinvent.net', 'dia-web']
   },
   test: {
     environment: 'jsdom',

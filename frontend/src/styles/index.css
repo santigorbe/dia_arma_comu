@@ -150,3 +150,5 @@ body { margin: 0; min-width: 320px; color: #202522; background: #f4f1e8; }
 .access-card h3 { display: flex; align-items: center; gap: var(--space-2xs); margin: 0 0 var(--space-2xs); color: var(--accent); font-family: var(--font-text); font-size: var(--step-0); }
 .access-card p { margin: 0; color: var(--ink-2); line-height: 1.5; }
 .access-note { margin: var(--space-s) 0 0; color: var(--ink-3); font-size: var(--step--1); }
+
+.admin-table-wrap { overflow-x:auto; margin-top:.75rem; }.admin-table { width:100%; border-collapse:collapse; font-size:.95rem; }.admin-table th, .admin-table td { text-align:left; padding:.5rem .6rem; border-bottom:1px solid #b79a5b; }

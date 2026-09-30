@@ -46,6 +46,8 @@ export function requireAdmin(env: AppEnv, db: Queryable) {
 
 export function requireAdminMutation(env: AppEnv) {
   return (request: Request, _response: Response, next: NextFunction) => {
+    // Safe methods never mutate state; browsers omit Origin on same-origin GETs.
+    if (request.method === 'GET' || request.method === 'HEAD') return next();
     const origin = request.header('origin');
     if (!origin || !env.allowedOrigins.includes(origin)) return next(new AppError(403, 'invalid_origin'));
     next();

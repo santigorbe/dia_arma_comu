@@ -20,5 +20,38 @@ export function createDiplomaCampaignRoutes(db: Queryable): Router {
       next(error instanceof z.ZodError ? new AppError(400, 'validation_failed', 'validation_failed', { fields: error.flatten().fieldErrors }) : error);
     }
   });
+
+  router.get('/diploma-campaigns', async (_request, response, next) => {
+    try {
+      const result = await db.query(
+        `SELECT c.id, c.state, c.origin, c.audience_count AS "audienceCount", c.created_at AS "createdAt", c.completed_at AS "completedAt",
+                count(d.*) FILTER (WHERE d.state = 'delivered')::int AS delivered,
+                count(d.*) FILTER (WHERE d.state IN ('pending', 'processing'))::int AS pending,
+                count(d.*) FILTER (WHERE d.state = 'retryable_failed')::int AS retrying,
+                count(d.*) FILTER (WHERE d.state = 'terminal_failed')::int AS failed
+         FROM diploma_campaigns c
+         LEFT JOIN diploma_deliveries d ON d.campaign_id = c.id
+         WHERE c.origin = 'admin'
+         GROUP BY c.id
+         ORDER BY c.created_at DESC
+         LIMIT 50`
+      );
+      response.json({ campaigns: result.rows });
+    } catch (error) { next(error); }
+  });
+
+  router.get('/diploma-campaigns/:id/deliveries', async (request, response, next) => {
+    try {
+      const id = z.string().uuid().safeParse(request.params.id);
+      if (!id.success) throw new AppError(400, 'validation_failed');
+      const result = await db.query(
+        `SELECT id, recipient_email AS "recipientEmail", participant_name AS "participantName", state, attempts,
+                last_error_code AS "lastErrorCode", delivered_at AS "deliveredAt"
+         FROM diploma_deliveries WHERE campaign_id = $1 ORDER BY created_at ASC`,
+        [id.data]
+      );
+      response.json({ deliveries: result.rows });
+    } catch (error) { next(error); }
+  });
   return router;
 }
