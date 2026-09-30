@@ -21,8 +21,8 @@ Allow a registration attempt to recover after the backend reports that the conse
 
 ## Stable Actionable Checklist
 
-- [ ] **RSC-01 — Recover the active consent version**: Read the nested API error detail with a runtime string guard and retain the existing user-facing recovery message.
-- [ ] **RSC-02 — Prove and record the recovery**: Update the regression fixture, run the focused frontend test and typecheck, then commit the complete work unit.
+- [x] **RSC-01 — Recover the active consent version**: Read the nested API error detail with a runtime string guard and retain the existing user-facing recovery message.
+- [x] **RSC-02 — Prove and record the recovery**: Update the regression fixture, run the focused frontend test and typecheck, then commit the complete work unit.
 
 ## Per-Task Route / Trigger Record
 
@@ -57,7 +57,8 @@ RSC-01 and RSC-02 are complete. The focused Vitest run passed with 1 test file a
 - Lint: `pnpm --filter @communications-day/frontend run lint` — passed (`tsc -p tsconfig.json --noEmit`).
 - Runtime evidence: N/A — this bounded client-side error-recovery change is covered by the focused MSW/Vitest interaction test; no standalone runtime process was required or started.
 - Rollback boundary: revert only the nested stale-consent version extraction, its canonical-response regression test, and this tracker evidence; no API contract, environment, or unrelated worktree change is involved.
+- Work-unit commit: `4ab5f4d fix(registration): recover stale consent version`.
 
 ## Next Step
 
-The work unit is verified and ready for its single local Conventional Commit.
+The work unit is complete. The tracker received a completion-evidence correction after the implementation commit.
