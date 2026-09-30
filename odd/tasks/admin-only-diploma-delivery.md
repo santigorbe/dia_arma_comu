@@ -45,8 +45,9 @@ Public registration currently triggers diploma delivery, which conflicts with th
 - `pnpm --filter @communications-day/backend run lint` — passed (`tsc -p tsconfig.json --noEmit`).
 - Runtime harness — N/A: the behavior is covered at the HTTP integration boundary with the fake database; no standalone process needs to run to verify queue creation.
 - Rollback boundary: revert this work-unit commit to restore the registration enqueue, registration-origin cleanup support, and their tests. No unrelated registration-consent work or migrations are included.
-- Commit evidence: this tracker is included in the work-unit commit; its SHA is reported in the delivery record.
+- Commit evidence: `628f063 fix(diplomas): restrict delivery to admin campaigns`.
+- RDD assessment: medium risk, 159 authored changed lines, `review_due: false` (`under_budget`) against `628f063^`; the review slice remains pending until the budget is reached or a high-risk change requires review.
 
 ## Next Step
 
-Commit the verified code, tests, and this tracker as one work unit, then record the commit SHA in this tracker and its Engram mirror.
+No implementation work remains. The next delivery decision remains with the maintainer; no push, pull request, or merge was performed.
