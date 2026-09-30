@@ -31,7 +31,9 @@ The registration flow currently enqueues a separate confirmation email for a spe
 - 2026-09-30 — Task document created after read-only mapping. The confirmation email is separate from diploma delivery but shares the Brevo transport.
 - 2026-09-30 — Removed the registration-confirmation enqueue, renderer, worker entry point, package script, Compose worker, and related test fixtures. The shared Brevo provider, communication history tables, diploma worker, and automatic diploma queue remain.
 - Verification: focused Vitest passed (3 files, 8 tests); lint passed; build passed; full backend suite passed (18 files, 72 tests); `docker compose config` passed; `git diff --check` passed.
+- Commit: `2ffb555 fix(registration): remove confirmation email`.
+- Receipt-driven-development assessment: enabled by default; `medium` risk because `backend/package.json` changed; review deferred as `under_budget` for the 340-line committed range against `HEAD^`.
 
 ## Next Step
 
-Commit the verified work unit, then assess it under the repository's receipt-driven-development setting.
+The requested email removal is complete. The next review boundary remains pending until a later committed range reaches the delivery budget or is otherwise due.
