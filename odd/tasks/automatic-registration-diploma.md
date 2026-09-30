@@ -1,10 +1,10 @@
 # Automatic Registration Diploma — Implementation Tracker
 
-**Status:** In progress
+**Status:** Closed locally; focused verification and type/build checks passed
 **Delivery route:** `delegated`
 **Delivery strategy:** Pending workload measurement
-**Commit evidence:** Pending
-**Next step:** Review the scoped diff and create the authorized conventional work-unit commit.
+**Commit evidence:** `c623823 feat(diplomas): queue delivery on registration`
+**Next step:** Resolve the pre-existing registration-confirmation test expectations separately from this work unit.
 
 ## Objective
 
@@ -48,7 +48,7 @@ The planned trigger crosses non-trivial persistence and orchestration boundaries
 - [x] `ARD-003` Add an additive migration that records registration-origin automatic deliveries with a single-delivery guarantee.
 - [x] `ARD-004` Enqueue the automatic delivery atomically with a newly created public registration while preserving existing campaign behavior.
 - [x] `ARD-005` Run focused verification and record exact results.
-- [ ] `ARD-006` Review scoped diff/status and create the single conventional work-unit commit.
+- [x] `ARD-006` Review scoped diff/status and create the conventional work-unit commit.
 
 ## Acceptance Criteria
 
@@ -96,3 +96,9 @@ The planned trigger crosses non-trivial persistence and orchestration boundaries
 - GREEN: `pnpm --filter @communications-day/backend exec vitest run -t 'automatic registration diploma delivery'` passed all three automatic delivery tests.
 - Typecheck and build passed.
 - Full suite failure is pre-existing: registration confirmation tests expect a communication job, but the unchanged service only calls `enqueueRegistrationEmail` for `santigorbe@gmail.com`; the worker tests consequently have no job to claim. The unchanged registration validation test makes the same incompatible expectation for `person@example.test`.
+
+### ARD-006
+
+- Reviewed `git diff --check`, scoped status, the complete scoped diff, and the staged diff before committing.
+- Commit: `c623823 feat(diplomas): queue delivery on registration`.
+- The commit contains only the automatic registration diploma schema, registration integration, focused tests, test-double support, migration expectations, and this tracker. Pre-existing changes to the two administrative route files were not staged.
