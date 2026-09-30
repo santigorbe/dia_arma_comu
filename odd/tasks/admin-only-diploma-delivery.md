@@ -1,3 +1,7 @@
+> **SUPERSEDED (2026-09-30):** this decision was reversed at the owner's request. Public registration once again
+> queues one diploma delivery automatically (origin `registration`); admin campaigns remain available.
+> The previous behavior can be recovered from git history (commit 628f063) or the local branch `pre-auto-mail`.
+
 # Admin-Only Diploma Delivery
 
 ## Objective

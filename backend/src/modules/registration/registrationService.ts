@@ -2,7 +2,7 @@ import type { Queryable } from '../../db/pool.js';
 import { withinTransaction } from '../../db/transaction.js';
 import { AppError } from '../../shared/http/errors.js';
 import type { RegistrationRequest } from './registrationSchemas.js';
-import { createParticipantRegistration, findIdempotency, findParticipantByEmail, saveIdempotency } from './registrationRepository.js';
+import { createParticipantRegistration, enqueueAutomaticDiplomaDelivery, findIdempotency, findParticipantByEmail, saveIdempotency } from './registrationRepository.js';
 
 export async function registerParticipant(db: Queryable, input: RegistrationRequest) {
   const replay = await findIdempotency(db, input.requestIdempotencyKey);
@@ -20,6 +20,9 @@ export async function registerParticipant(db: Queryable, input: RegistrationRequ
     }
 
     const participantId = existing ? String(existing.id) : await createParticipantRegistration(transaction, input);
+    if (!existing) {
+      await enqueueAutomaticDiplomaDelivery(transaction, participantId, input);
+    }
     const body = { participantId, status: 'registered' };
     await saveIdempotency(transaction, input.requestIdempotencyKey, 201, body);
     return { status: 201, body };
