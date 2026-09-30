@@ -70,7 +70,7 @@ Checks:
 
 ### SRD-CONSENT-05 — Remove Public Registration Consent
 
-Status: completed (work-unit commit pending)
+Status: completed (committed)
 
 Remove consent from the public registration form and contract, preserving only independent historical database behavior and changing the submit copy to `Registrarme`.
 
@@ -104,7 +104,7 @@ Checks:
 
 ## Next Step
 
-Create the single SRD-CONSENT-05 work-unit commit. Its SHA is recorded after commit creation without a tracker-only follow-up commit.
+SRD-CONSENT-05 is committed. No tracker-only follow-up commit is created.
 
 ## Verification Evidence
 
@@ -138,4 +138,4 @@ Commit SHA: `1a499ac`.
 
 Previous work-unit commit SHA: `1a499ac`.
 
-SRD-CONSENT-05 work-unit commit SHA: pending commit creation.
+SRD-CONSENT-05 work-unit commit SHA: `a0727b0` (`feat(registration): remove consent requirement`).
