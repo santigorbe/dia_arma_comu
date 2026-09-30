@@ -57,7 +57,7 @@ body { margin: 0; min-width: 320px; color: #202522; background: #f4f1e8; }
 .brand-logo { display: block; flex: 0 0 auto; width: var(--space-xl); height: var(--space-xl); object-fit: contain; }
 .brand-copy { display: grid; gap: var(--space-3xs); min-width: 0; font-weight: 700; letter-spacing: 0.08em; line-height: 1.1; text-transform: uppercase; }
 .brand-copy span:first-child { color: var(--ink); font-size: var(--step-0); }
-.brand-copy span:last-child { color: var(--accent); font-size: var(--step--1); }
+.brand-copy span:last-child { justify-self: center; color: var(--accent); font-size: var(--step--1); }
 .menu-button, .nav-register { min-height: var(--space-l); border: 1px solid var(--accent); border-radius: var(--radius); background: transparent; color: var(--ink); padding: var(--space-2xs) var(--space-xs); font: inherit; font-size: var(--step--1); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .menu-button { display: inline-grid; width: var(--space-l); place-items: center; padding: var(--space-2xs); }
 .site-nav { display: none; }
