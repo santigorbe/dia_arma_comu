@@ -35,7 +35,7 @@ export function HomePage() {
       <div className="hero-content">
         <p className="hero-badge">84° ANIVERSARIO · SAN GABRIEL ARCÁNGEL</p>
         <h1 id="hero-title">Celebración del Día del Arma de Comunicaciones</h1>
-        <p className="hero-subtitle">y del Sistema de Computación de Datos</p>
+        <p className="hero-subtitle">y del Sistema de Cómputos de Datos</p>
         <p className="hero-label">
           <span className="hero-label-item"><FontAwesomeIcon icon={faCalendarDays} aria-hidden="true" /> 2 DE OCTUBRE DE 2026 · 11:00 HS</span>
           <span className="hero-label-item"><FontAwesomeIcon icon={faLocationDot} aria-hidden="true" /> GUARNICIÓN EJÉRCITO “CÓRDOBA”</span>

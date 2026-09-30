@@ -14,8 +14,8 @@ export async function processNextDiplomaDelivery(db: Queryable, provider: EmailP
     const pdf = await generator.generate({ fullName: delivery.participant_name, grade: 'Señor/a' });
     const result = await provider.send({
       to: delivery.recipient_email,
-      subject: 'Salutación por el 84° Aniversario del Arma de Comunicaciones y el Dia del Sistema de Computaciónde de Datos',
-      text: 'Salutación por el 84° Aniversario del Arma de Comunicaciones y el Dia del Sistema de Computaciónde de Datos',
+      subject: 'Salutación por el 84° Aniversario del Arma de Comunicaciones y el Día del Sistema de Cómputos de Datos',
+      text: 'Salutación por el 84° Aniversario del Arma de Comunicaciones y el Día del Sistema de Cómputos de Datos',
       attachments: [{ name: 'Salutacion - DCEA.pdf', content: pdf }]
     });
     await recordDelivery(db, delivery, provider.mode, crypto.createHash('sha256').update(pdf).digest('hex'), result.providerId);
