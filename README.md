@@ -17,7 +17,7 @@ docker compose config
 docker compose up --build
 ```
 
-The root `.env` is the only operational configuration source for Compose: it supplies the backend, `db-init`, both workers, and derived public frontend build values. Do not create `backend/.env` or add `VITE_*` variables to `.env`.
+The root `.env` is the only operational configuration source for Compose: it supplies the backend, `db-init`, the diploma worker, and derived public frontend build values. Do not create `backend/.env` or add `VITE_*` variables to `.env`.
 
 The default provider mode is simulation. No real email or WhatsApp credentials are required for local development.
 
@@ -77,7 +77,7 @@ Foundation tests cover migration ordering/idempotency and health/readiness behav
 
 Email and WhatsApp run in simulation by default. Real delivery must remain disabled until operators provide credentials, sender identities, approved templates, domains, and provider approval evidence.
 
-Registration confirmations are persisted in the email outbox and delivered by the `worker` service. In simulation mode the worker records a delivered attempt without contacting a provider. To activate Brevo in a controlled environment, set `EMAIL_PROVIDER_MODE=real`, `BREVO_API_KEY`, and `BREVO_FROM_EMAIL` in the root `.env`; the sender address must be operator-verified in Brevo. When `EMAIL_PROVIDER_MODE` is absent, backend configuration safely defaults to simulation. Brevo sender verification remains an operator responsibility and is not validated remotely by this application. Delivery failures are recorded for retry and do not change an accepted registration response.
+Accepted registrations queue diploma delivery through the `diploma-worker` service. In simulation mode the worker records a delivered diploma attempt without contacting a provider. To activate Brevo in a controlled environment, set `EMAIL_PROVIDER_MODE=real`, `BREVO_API_KEY`, and `BREVO_FROM_EMAIL` in the root `.env`; the sender address must be operator-verified in Brevo. When `EMAIL_PROVIDER_MODE` is absent, backend configuration safely defaults to simulation. Brevo sender verification remains an operator responsibility and is not validated remotely by this application. Diploma delivery failures are recorded for retry and do not change an accepted registration response.
 
 ## Production prerequisites
 

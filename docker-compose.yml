@@ -64,18 +64,6 @@ services:
       timeout: 5s
       retries: 12
 
-  worker:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-    command: ["node", "backend/dist/src/scripts/runCommunicationWorker.js"]
-    env_file: *backend-runtime-env-file
-    environment: *backend-environment
-    depends_on:
-      db-init:
-        condition: service_completed_successfully
-    restart: unless-stopped
-
   diploma-worker:
     build:
       context: .

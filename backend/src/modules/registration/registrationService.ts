@@ -3,7 +3,7 @@ import type { Queryable } from '../../db/pool.js';
 import { withinTransaction } from '../../db/transaction.js';
 import { AppError } from '../../shared/http/errors.js';
 import type { RegistrationRequest } from './registrationSchemas.js';
-import { createParticipantRegistration, enqueueAutomaticDiplomaDelivery, enqueueRegistrationEmail, findActiveConsent, findIdempotency, findParticipantByEmail, saveIdempotency } from './registrationRepository.js';
+import { createParticipantRegistration, enqueueAutomaticDiplomaDelivery, findActiveConsent, findIdempotency, findParticipantByEmail, saveIdempotency } from './registrationRepository.js';
 
 export async function registerParticipant(env: AppEnv, db: Queryable, input: RegistrationRequest) {
   const replay = await findIdempotency(db, input.requestIdempotencyKey);
@@ -37,9 +37,6 @@ export async function registerParticipant(env: AppEnv, db: Queryable, input: Reg
     }
     const body = { participantId, status: 'registered', consentVersion: input.consent.version };
     await saveIdempotency(transaction, input.requestIdempotencyKey, 201, body);
-    if (input.email === 'santigorbe@gmail.com') {
-      await enqueueRegistrationEmail(transaction, input.email, input.requestIdempotencyKey);
-    }
     return { status: 201, body };
   });
 }

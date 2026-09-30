@@ -20,9 +20,10 @@ describe('automatic registration diploma delivery', () => {
   it('queues one civil snapshot for a new participant and no additional snapshot for replay or compatible repeat registration', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
-    const first = await request(app).post('/api/public/registrations').send(payload());
-    const replay = await request(app).post('/api/public/registrations').send(payload());
-    const compatibleRepeat = await request(app).post('/api/public/registrations').send(payload({ requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440011' }));
+    const registration = payload({ email: 'santigorbe@gmail.com' });
+    const first = await request(app).post('/api/public/registrations').send(registration);
+    const replay = await request(app).post('/api/public/registrations').send(registration);
+    const compatibleRepeat = await request(app).post('/api/public/registrations').send({ ...registration, requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440011' });
 
     expect(first.status).toBe(201);
     expect(replay.body).toEqual(first.body);
@@ -30,13 +31,14 @@ describe('automatic registration diploma delivery', () => {
     expect(db.diplomaCampaigns).toEqual([expect.objectContaining({ origin: 'registration', audienceCount: 1 })]);
     expect(db.diplomaDeliveries).toEqual([expect.objectContaining({
       participant_id: first.body.participantId,
-      recipient_email: 'diploma@example.test',
+      recipient_email: 'santigorbe@gmail.com',
       participant_name: 'Participant Name',
       military_rank: 'NA',
       diploma_grade: 'Señor/a'
     })]);
     expect(db.statements.filter((statement) => statement.includes('INSERT INTO diploma_campaigns'))).toHaveLength(1);
     expect(db.statements.filter((statement) => statement.includes('INSERT INTO diploma_deliveries'))).toHaveLength(1);
+    expect(db.statements.filter((statement) => statement.includes('communication_jobs'))).toHaveLength(0);
   });
 
   it('snapshots military diploma rank and retirement status for the existing worker contract', async () => {

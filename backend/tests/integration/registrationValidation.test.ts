@@ -33,7 +33,7 @@ describe('registration validation and idempotency', () => {
     expect(JSON.stringify(first.body)).not.toMatch(/hidden|not-email|person@example|Participant|message|value/i);
   });
 
-  it('queues one email job for each accepted idempotency key and none for an exact replay', async () => {
+  it('queues one automatic diploma delivery for accepted registrations and no confirmation email jobs', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
     const first = await request(app).post('/api/public/registrations').send(payload());
@@ -45,11 +45,8 @@ describe('registration validation and idempotency', () => {
     expect(repeat.status).toBe(201);
     expect(repeat.body.participantId).toBe(first.body.participantId);
     expect(db.participants.size).toBe(1);
-    expect(db.communicationJobs).toEqual([
-      { recipient_ref: 'person@example.test', idempotency_key: 'registration-email:550e8400-e29b-41d4-a716-446655440002' },
-      { recipient_ref: 'person@example.test', idempotency_key: 'registration-email:550e8400-e29b-41d4-a716-446655440004' }
-    ]);
-    expect(db.statements.filter((statement) => statement.includes('INSERT INTO communication_jobs'))).toHaveLength(2);
+    expect(db.diplomaDeliveries).toEqual([expect.objectContaining({ recipient_email: 'person@example.test' })]);
+    expect(db.statements.filter((statement) => statement.includes('INSERT INTO communication_jobs'))).toHaveLength(0);
     expect(db.statements.filter((statement) => statement === 'BEGIN')).toHaveLength(2);
     expect(db.statements.filter((statement) => statement === 'COMMIT')).toHaveLength(2);
   });

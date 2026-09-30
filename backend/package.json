@@ -11,7 +11,6 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "migrate": "tsx src/db/migrate.ts",
     "admin:bootstrap": "tsx src/scripts/bootstrapAdmin.ts",
-    "worker": "tsx src/scripts/runCommunicationWorker.ts",
     "worker:diplomas": "tsx src/scripts/runDiplomaWorker.ts",
     "smoke": "node -e \"fetch('http://localhost:3000/health/ready').then(r=>{console.log(r.status);process.exit(r.ok?0:1)}).catch(e=>{console.error(e.message);process.exit(1)})\""
   },

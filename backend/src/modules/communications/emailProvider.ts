@@ -8,8 +8,6 @@ export type EmailMessage = {
   text: string;
   attachments?: EmailAttachment[];
 };
-export type RegistrationConfirmationEmail = EmailMessage;
-
 export type EmailProvider = {
   mode: 'simulation' | 'real';
   send(email: EmailMessage): Promise<{ providerId?: string }>;
