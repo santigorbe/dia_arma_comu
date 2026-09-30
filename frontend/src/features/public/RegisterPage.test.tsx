@@ -43,68 +43,22 @@ describe('RegisterPage', () => {
       return HttpResponse.json({ participantId: 'participant-1', status: 'registered', consentVersion: 'consent-local-placeholder' }, { status: 201 });
     }));
     renderPage();
-    expect(screen.queryByLabelText(/Unidad \/ Elemento/i)).toBeNull();
-    expect(screen.queryByLabelText(/Situación/i)).toBeNull();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    fillForm(true);
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
-
-    expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
-    expect(payload).not.toHaveProperty('unitOrOrganization');
-    expect(payload).not.toHaveProperty('serviceStatus');
-    expect(payload).not.toHaveProperty('organization');
-  });
-
-  it('defaults to civil personnel and omits militaryRank', async () => {
-    let payload: Record<string, unknown> | undefined;
-    server.use(http.post('/api/public/registrations', async ({ request }) => {
-      payload = await request.json() as Record<string, unknown>;
-      return HttpResponse.json({ participantId: 'participant-1', status: 'registered', consentVersion: 'consent-local-placeholder' }, { status: 201 });
-    }));
-    renderPage();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    expect(screen.queryByLabelText(/Grado/i)).toBeNull();
-    fillForm(true);
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
-
-    expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
-    expect(payload).toMatchObject({ personnelType: 'civil' });
-    expect(payload).not.toHaveProperty('militaryRank');
-  });
-
-  it('reveals and sends required Grado and Situación fields when personnel is militar', async () => {
-    let payload: Record<string, unknown> | undefined;
-    server.use(http.post('/api/public/registrations', async ({ request }) => {
-      payload = await request.json() as Record<string, unknown>;
-      return HttpResponse.json({ participantId: 'participant-1', status: 'registered', consentVersion: 'consent-local-placeholder' }, { status: 201 });
-    }));
-    renderPage();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    fillForm(true);
-    fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'militar' } });
-    const rank = await screen.findByLabelText(/Grado/i);
-    expect(rank.hasAttribute('required')).toBe(true);
-    const serviceStatus = screen.getByLabelText(/Situación/i);
-    expect(serviceStatus.hasAttribute('required')).toBe(true);
-    expect(screen.getByRole('option', { name: 'En actividad' }).getAttribute('value')).toBe('actividad');
-    expect(screen.getByRole('option', { name: 'Retirado' }).getAttribute('value')).toBe('retiro');
-    fireEvent.change(rank, { target: { value: 'Coronel (CR)' } });
-    fireEvent.change(serviceStatus, { target: { value: 'retiro' } });
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
-
-    expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
-    expect(payload).toMatchObject({ personnelType: 'militar', militaryRank: 'Coronel (CR)', serviceStatus: 'retiro' });
-    expect(payload).not.toHaveProperty('unitOrOrganization');
-  });
-
-  it('hides Grado again after switching back to civil', async () => {
-    renderPage();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'militar' } });
-    expect(await screen.findByLabelText(/Grado/i)).toBeTruthy();
-    fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'civil' } });
+    expect(screen.queryByLabelText(/Teléfono/i)).toBeNull();
+    expect(screen.queryByLabelText(/Personal/i)).toBeNull();
     expect(screen.queryByLabelText(/Grado/i)).toBeNull();
     expect(screen.queryByLabelText(/Situación/i)).toBeNull();
+    await screen.findByRole('button', { name: /enviar registro/i });
+    fillForm(true);
+    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+
+    expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
+    expect(payload).toEqual({
+      requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440099',
+      visitId: '550e8400-e29b-41d4-a716-446655440000',
+      fullName: 'Participant Name',
+      email: 'person@example.test',
+      consent: { accepted: true, version: 'consent-local-placeholder' }
+    });
   });
 
   it('recovers from stale consent responses with the active version', async () => {
@@ -147,24 +101,6 @@ describe('RegisterPage', () => {
     expect(screen.getByText('Ingrese un nombre completo válido.')).toBeTruthy();
     expect(screen.getByText('Ingrese un correo electrónico válido.')).toBeTruthy();
     expect(document.activeElement).toBe(name);
-  });
-
-  it('maps conditional military validation details to their visible controls', async () => {
-    server.use(http.post('/api/public/registrations', () => HttpResponse.json({
-      error: 'validation_failed',
-      details: [{ field: 'militaryRank', code: 'custom' }, { field: 'serviceStatus', code: 'custom' }]
-    }, { status: 400 })));
-    renderPage();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    fillForm(true);
-    fireEvent.change(screen.getByLabelText(/Personal/i), { target: { value: 'militar' } });
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
-
-    const rank = await screen.findByLabelText(/Grado/i);
-    expect(rank.getAttribute('aria-invalid')).toBe('true');
-    const serviceStatus = screen.getByLabelText(/Situación/i);
-    expect(serviceStatus.getAttribute('aria-invalid')).toBe('true');
-    expect(document.activeElement).toBe(rank);
   });
 
   it('uses truthful fallback feedback when validation details are absent', async () => {

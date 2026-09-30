@@ -5,6 +5,7 @@ import type { Queryable } from '../../src/db/pool.js';
 
 class DiplomaDb implements Queryable {
   state = 'pending';
+  diplomaGrade = 'Coronel (R)';
   attempts = 0;
   statements: string[] = [];
 
@@ -14,7 +15,7 @@ class DiplomaDb implements Queryable {
       if (this.state !== 'pending') return result([]);
       this.state = 'processing';
       this.attempts += 1;
-      return result([{ id: 'delivery-1', campaign_id: 'campaign-1', recipient_email: 'participant@example.test', participant_name: 'Participant Name', diploma_grade: 'Señor/a', attempts: this.attempts }]);
+      return result([{ id: 'delivery-1', campaign_id: 'campaign-1', recipient_email: 'participant@example.test', participant_name: 'Participant Name', diploma_grade: this.diplomaGrade, attempts: this.attempts }]);
     }
     if (text.includes("SET state = 'delivered'")) this.state = 'delivered';
     if (text.includes('SET state = $1, claimed_by')) this.state = String(values[0]);
@@ -27,7 +28,7 @@ function result(rows: Record<string, unknown>[]): QueryResult {
 }
 
 describe('diploma delivery worker', () => {
-  it('generates a temporary PDF, attaches it, hashes it, and records simulated delivery', async () => {
+  it('forces Señor/a for a legacy queued delivery, attaches it, hashes it, and records simulated delivery', async () => {
     const db = new DiplomaDb();
     const provider = { mode: 'simulation' as const, send: vi.fn(async () => ({ providerId: 'simulated-1' })) };
     const generator = { generate: vi.fn(async () => Buffer.from('%PDF-test')) };

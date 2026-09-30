@@ -1,4 +1,5 @@
 import request from 'supertest';
+import crypto from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../../src/app.js';
 import { FakeDb } from '../helpers/fakeDb.js';
@@ -9,7 +10,6 @@ const basePayload = {
   visitId: '550e8400-e29b-41d4-a716-446655440000',
   fullName: 'Participant Name',
   email: 'person@example.test',
-  personnelType: 'civil',
   consent: { accepted: true, version: 'consent-2026-09' }
 };
 
@@ -35,18 +35,16 @@ describe('backend-enforced consent', () => {
     expect(db.participants.size).toBe(1);
   });
 
-  it('preserves a legacy organization when omitted and still rejects explicit conflicts', async () => {
+  it('accepts a matching historical participant without changing legacy columns', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
-    const first = await request(app).post('/api/public/registrations').send({ ...basePayload, unitOrOrganization: 'Existing unit' });
-    expect(first.status).toBe(201);
-    const repeat = await request(app).post('/api/public/registrations').send({ ...basePayload, requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440002' });
+    const id = crypto.randomUUID();
+    db.participants.set(basePayload.email, { id, full_name: basePayload.fullName, email: basePayload.email, phone: '+5493511234567', unit_or_organization: 'Existing unit', personnel_type: 'militar', military_rank: 'Coronel', service_status: 'actividad' });
+
+    const repeat = await request(app).post('/api/public/registrations').send(basePayload);
     expect(repeat.status).toBe(201);
-    expect(repeat.body.participantId).toBe(first.body.participantId);
+    expect(repeat.body.participantId).toBe(id);
     expect(db.participants.size).toBe(1);
     expect([...db.participants.values()][0].unit_or_organization).toBe('Existing unit');
-    const conflict = await request(app).post('/api/public/registrations').send({ ...basePayload, requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440003', unitOrOrganization: 'Different unit' });
-    expect(conflict.status).toBe(409);
-    expect(conflict.body.error).toBe('participant_conflict');
   });
 });

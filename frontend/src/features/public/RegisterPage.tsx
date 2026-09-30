@@ -2,30 +2,6 @@ import { FormEvent, useState } from 'react';
 import { apiRequest, type ApiError } from '../../lib/apiClient';
 import { useVisit } from '../visits/VisitProvider';
 
-const MILITARY_RANKS: Array<{ name: string; code: string }> = [
-  { name: 'Teniente General', code: 'TG' },
-  { name: 'General de División', code: 'GD' },
-  { name: 'General de Brigada', code: 'GB' },
-  { name: 'Coronel Mayor', code: 'CY' },
-  { name: 'Coronel', code: 'CR' },
-  { name: 'Teniente Coronel', code: 'TC' },
-  { name: 'Mayor', code: 'MY' },
-  { name: 'Capitán', code: 'CT' },
-  { name: 'Teniente Primero', code: 'TP' },
-  { name: 'Teniente', code: 'TT' },
-  { name: 'Subteniente', code: 'ST' },
-  { name: 'Suboficial Mayor', code: 'SM' },
-  { name: 'Suboficial Principal', code: 'SP' },
-  { name: 'Sargento Ayudante', code: 'SA' },
-  { name: 'Sargento Primero', code: 'SI' },
-  { name: 'Sargento', code: 'SG' },
-  { name: 'Cabo Primero', code: 'CI' },
-  { name: 'Cabo', code: 'CB' },
-  { name: 'Soldado Voluntario de 1ra', code: 'VP' },
-  { name: 'Soldado Voluntario de 2da', code: 'VS' },
-  { name: 'Soldado Voluntario "En Comisión"', code: 'VS "EC"' }
-];
-
 const activeConsentVersion = import.meta.env.VITE_ACTIVE_CONSENT_VERSION ?? 'consent-local-placeholder';
 
 type RegistrationState =
@@ -34,17 +10,13 @@ type RegistrationState =
   | { status: 'success'; participantId: string }
   | { status: 'error' | 'conflict' | 'stale_consent'; message: string; activeConsentVersion?: string };
 
-type RegistrationControlName = 'fullName' | 'email' | 'phone' | 'personnelType' | 'militaryRank' | 'serviceStatus' | 'consent';
+type RegistrationControlName = 'fullName' | 'email' | 'consent';
 type FieldErrors = Partial<Record<RegistrationControlName, string>>;
 
-const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email', 'phone', 'personnelType', 'militaryRank', 'serviceStatus', 'consent'];
+const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email', 'consent'];
 const VALIDATION_MESSAGES: Record<string, Record<string, string>> = {
   fullName: messages(['invalid_type', 'too_small', 'too_big'], 'Ingrese un nombre completo válido.'),
   email: messages(['invalid_type', 'invalid_string', 'too_big'], 'Ingrese un correo electrónico válido.'),
-  phone: messages(['invalid_type', 'too_big'], 'Revise el teléfono ingresado.'),
-  personnelType: messages(['invalid_type', 'invalid_enum_value'], 'Seleccione el tipo de personal.'),
-  militaryRank: messages(['invalid_type', 'too_small', 'too_big', 'custom'], 'Seleccione un grado válido.'),
-  serviceStatus: messages(['invalid_type', 'invalid_enum_value', 'custom'], 'Seleccione una situación válida.'),
   'consent.accepted': messages(['invalid_type', 'invalid_literal'], 'Confirme el consentimiento para continuar.'),
   'consent.version': messages(['invalid_type', 'too_small', 'too_big'], 'Revise la versión activa del consentimiento.')
 };
@@ -53,7 +25,6 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
   const visit = useVisit();
   const [state, setState] = useState<RegistrationState>({ status: 'idle' });
   const [consentVersion, setConsentVersion] = useState(activeConsentVersion);
-  const [personnelType, setPersonnelType] = useState<'militar' | 'civil'>('civil');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -81,16 +52,11 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           visitId: visit.visitId,
           fullName: String(form.get('fullName') ?? ''),
           email: String(form.get('email') ?? ''),
-          phone: optionalString(form.get('phone')),
-          personnelType,
-          militaryRank: personnelType === 'militar' ? optionalString(form.get('militaryRank')) : undefined,
-          serviceStatus: personnelType === 'militar' ? optionalString(form.get('serviceStatus')) : undefined,
           consent: { accepted: true, version: consentVersion }
         })
       });
       if (onSuccessfulRegistration) {
         formElement.reset();
-        setPersonnelType('civil');
         setState({ status: 'idle' });
         onSuccessfulRegistration();
         return;
@@ -152,54 +118,6 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           <input name="email" type="email" required {...invalidProps('email')} />
           <FieldError name="email" errors={fieldErrors} />
         </label>
-        <label>
-          Teléfono
-          <input name="phone" maxLength={40} {...invalidProps('phone')} />
-          <FieldError name="phone" errors={fieldErrors} />
-        </label>
-        <label>
-          Personal
-          <select
-            name="personnelType"
-            required
-            value={personnelType}
-            onChange={(event) => setPersonnelType(event.target.value as 'militar' | 'civil')}
-            {...invalidProps('personnelType')}
-          >
-            <option value="civil">Civil</option>
-            <option value="militar">Militar</option>
-          </select>
-          <FieldError name="personnelType" errors={fieldErrors} />
-        </label>
-        {personnelType === 'militar' && (
-          <>
-            <label>
-              Grado
-              <select name="militaryRank" required defaultValue="" {...invalidProps('militaryRank')}>
-                <option value="" disabled>
-                  Seleccione un grado
-                </option>
-                {MILITARY_RANKS.map((rank) => (
-                  <option key={rank.code} value={`${rank.name} (${rank.code})`}>
-                    {rank.name} ({rank.code})
-                  </option>
-                ))}
-              </select>
-              <FieldError name="militaryRank" errors={fieldErrors} />
-            </label>
-            <label>
-              Situación
-              <select name="serviceStatus" required defaultValue="" {...invalidProps('serviceStatus')}>
-                <option value="" disabled>
-                  Seleccione una situación
-                </option>
-                <option value="actividad">En actividad</option>
-                <option value="retiro">Retirado</option>
-              </select>
-              <FieldError name="serviceStatus" errors={fieldErrors} />
-            </label>
-          </>
-        )}
         <section className="consent-panel">
           <h2>Consentimiento</h2>
           <p>Usted acepta recibir un correo con el diploma de participación al finalizar el evento via correo electronico. Sus datos serán utilizados exclusivamente para este propósito.</p>
@@ -219,11 +137,6 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
       </form>
       </Container>
   );
-}
-
-function optionalString(value: FormDataEntryValue | null) {
-  const normalized = String(value ?? '').trim();
-  return normalized ? normalized : undefined;
 }
 
 function activeConsentVersionFromDetails(details: unknown) {

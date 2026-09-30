@@ -10,14 +10,13 @@ function payload(overrides: Record<string, unknown> = {}) {
     visitId: '550e8400-e29b-41d4-a716-446655440000',
     fullName: 'Participant Name',
     email: 'diploma@example.test',
-    personnelType: 'civil',
     consent: { accepted: true, version: 'consent-2026-09' },
     ...overrides
   };
 }
 
 describe('automatic registration diploma delivery', () => {
-  it('queues one civil snapshot for a new participant and no additional snapshot for replay or compatible repeat registration', async () => {
+  it('queues one Señor/a snapshot for a new participant and no additional snapshot for replay or compatible repeat registration', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
     const registration = payload({ email: 'santigorbe@gmail.com' });
@@ -39,19 +38,6 @@ describe('automatic registration diploma delivery', () => {
     expect(db.statements.filter((statement) => statement.includes('INSERT INTO diploma_campaigns'))).toHaveLength(1);
     expect(db.statements.filter((statement) => statement.includes('INSERT INTO diploma_deliveries'))).toHaveLength(1);
     expect(db.statements.filter((statement) => statement.includes('communication_jobs'))).toHaveLength(0);
-  });
-
-  it('snapshots military diploma rank and retirement status for the existing worker contract', async () => {
-    const db = new FakeDb();
-    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(payload({
-      email: 'retired@example.test',
-      personnelType: 'militar',
-      militaryRank: 'Coronel (COM)',
-      serviceStatus: 'retiro'
-    }));
-
-    expect(response.status).toBe(201);
-    expect(db.diplomaDeliveries).toEqual([expect.objectContaining({ military_rank: 'Coronel (COM)', diploma_grade: 'Coronel (R)' })]);
   });
 
   it('does not queue a delivery for validation, consent, or participant conflict failures', async () => {

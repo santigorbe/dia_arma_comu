@@ -15,8 +15,6 @@ function registrationPayload(overrides: Record<string, unknown> = {}) {
     visitId: '550e8400-e29b-41d4-a716-446655440000',
     fullName: 'Participante Saludos',
     email: `saludos-${crypto.randomUUID()}@example.test`,
-    phone: '+5493511234567',
-    personnelType: 'civil',
     consent: { accepted: true, version: 'consent-2026-09' },
     ...overrides
   };
@@ -42,25 +40,21 @@ describe('WhatsApp greeting integration API', () => {
     expect(response.status).toBe(404);
   });
 
-  it('lists only participants with a phone number, in the shape n8n expects', async () => {
+  it('lists only legacy participants with a phone number, in the shape n8n expects', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
-    await request(app).post('/api/public/registrations').send(registrationPayload({ fullName: 'Con Telefono', phone: '+5493511111111' }));
-    await request(app).post('/api/public/registrations').send(
-      registrationPayload({ fullName: 'Sin Telefono', phone: undefined, email: `sin-telefono-${crypto.randomUUID()}@example.test` })
-    );
+    db.participants.set('legacy-phone@example.test', { id: crypto.randomUUID(), full_name: 'Con Telefono', phone: '+5493511111111', military_rank: null, card_image_filename: null });
+    await request(app).post('/api/public/registrations').send(registrationPayload({ fullName: 'Sin Telefono' }));
 
     const response = await request(app).get('/datos').set('Authorization', AUTH_HEADER);
     expect(response.status).toBe(200);
     expect(response.body).toEqual([{ nombre: 'Con Telefono', grado: null, numero: '+5493511111111', imagen: null }]);
   });
 
-  it('includes the military rank as grado for military registrants', async () => {
+  it('includes the military rank as grado for legacy military participants', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
-    await request(app).post('/api/public/registrations').send(
-      registrationPayload({ fullName: 'Grado Test', phone: '+5493512222222', personnelType: 'militar', militaryRank: 'Coronel (CR)', serviceStatus: 'actividad' })
-    );
+    db.participants.set('legacy-rank@example.test', { id: crypto.randomUUID(), full_name: 'Grado Test', phone: '+5493512222222', military_rank: 'Coronel (CR)', card_image_filename: null });
 
     const response = await request(app).get('/datos').set('Authorization', AUTH_HEADER);
     expect(response.body).toEqual([{ nombre: 'Grado Test', grado: 'Coronel (CR)', numero: '+5493512222222', imagen: null }]);
@@ -69,7 +63,7 @@ describe('WhatsApp greeting integration API', () => {
   it('uploads a card image, links it to the participant, and serves it back', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
-    const registration = await request(app).post('/api/public/registrations').send(registrationPayload({ fullName: 'Con Tarjeta', phone: '+5493513333333' }));
+    const registration = await request(app).post('/api/public/registrations').send(registrationPayload({ fullName: 'Con Tarjeta' }));
     const participantId = registration.body.participantId as string;
 
     const upload = await request(app)
@@ -81,7 +75,7 @@ describe('WhatsApp greeting integration API', () => {
     expect(upload.body.imagen).toMatch(new RegExp(`/imagenes/${participantId}\\.png$`));
 
     const datos = await request(app).get('/datos').set('Authorization', AUTH_HEADER);
-    expect(datos.body[0].imagen).toBe(upload.body.imagen);
+    expect(datos.body).toEqual([]);
 
     const download = await request(app).get(`/imagenes/${participantId}.png`).set('Authorization', AUTH_HEADER);
     expect(download.status).toBe(200);
@@ -112,7 +106,7 @@ describe('WhatsApp greeting integration API', () => {
   it('accepts the image route token as a query string, for direct browser viewing', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
-    const registration = await request(app).post('/api/public/registrations').send(registrationPayload({ fullName: 'Con Tarjeta Query', phone: '+5493514444444' }));
+    const registration = await request(app).post('/api/public/registrations').send(registrationPayload({ fullName: 'Con Tarjeta Query' }));
     const participantId = registration.body.participantId as string;
 
     await request(app)

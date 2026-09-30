@@ -11,7 +11,7 @@ export async function processNextDiplomaDelivery(db: Queryable, provider: EmailP
   if (!delivery) return false;
   const logger = createLogger(writeLog);
   try {
-    const pdf = await generator.generate({ fullName: delivery.participant_name, grade: delivery.diploma_grade });
+    const pdf = await generator.generate({ fullName: delivery.participant_name, grade: 'Señor/a' });
     const result = await provider.send({
       to: delivery.recipient_email,
       subject: 'Salutación por el 84° Aniversario del Arma de Comunicaciones y el Dia del Sistema de Computaciónde de Datos',

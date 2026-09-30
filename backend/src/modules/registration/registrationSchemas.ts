@@ -4,11 +4,6 @@ import { idempotencyKeySchema, uuidSchema } from '../../shared/http/validation.j
 export const registrationValidationDetailAllowlist = {
   fullName: ['invalid_type', 'too_small', 'too_big'],
   email: ['invalid_type', 'invalid_string', 'too_big'],
-  phone: ['invalid_type', 'too_big'],
-  unitOrOrganization: ['invalid_type', 'too_big'],
-  personnelType: ['invalid_type', 'invalid_enum_value'],
-  militaryRank: ['invalid_type', 'too_small', 'too_big', 'custom'],
-  serviceStatus: ['invalid_type', 'invalid_enum_value', 'custom'],
   'consent.accepted': ['invalid_type', 'invalid_literal'],
   'consent.version': ['invalid_type', 'too_small', 'too_big']
 } as const;
@@ -19,24 +14,8 @@ export const registrationRequestSchema = z
     visitId: uuidSchema,
     fullName: z.string().trim().min(2).max(120),
     email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
-    phone: z.string().trim().max(40).optional(),
-    unitOrOrganization: z.string().trim().max(120).optional(),
-    personnelType: z.enum(['militar', 'civil']),
-    militaryRank: z.string().trim().min(1).max(60).optional(),
-    serviceStatus: z.enum(['actividad', 'retiro']).optional(),
     consent: z.object({ accepted: z.literal(true), version: z.string().min(1).max(80) }).strict()
   })
-  .strict()
-  .superRefine((value, ctx) => {
-    if (value.personnelType === 'militar' && !value.militaryRank) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'militaryRank is required when personnelType is militar', path: ['militaryRank'] });
-    }
-    if (value.personnelType === 'civil' && value.militaryRank !== undefined) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'militaryRank must not be provided when personnelType is civil', path: ['militaryRank'] });
-    }
-    if (value.personnelType === 'civil' && value.serviceStatus !== undefined) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'serviceStatus must not be provided when personnelType is civil', path: ['serviceStatus'] });
-    }
-  });
+  .strict();
 
 export type RegistrationRequest = z.infer<typeof registrationRequestSchema>;

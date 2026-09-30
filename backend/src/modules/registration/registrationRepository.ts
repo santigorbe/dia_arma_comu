@@ -33,7 +33,7 @@ export async function createParticipantRegistration(db: Queryable, input: Regist
     `INSERT INTO participants (full_name, email, phone, unit_or_organization, personnel_type, military_rank, service_status)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id`,
-    [input.fullName, input.email, input.phone ?? null, input.unitOrOrganization ?? null, input.personnelType, input.militaryRank ?? null, input.serviceStatus ?? null]
+    [input.fullName, input.email, null, null, 'civil', null, null]
   );
   const participantId = String(participant.rows[0]?.id);
   await db.query(
@@ -54,10 +54,8 @@ export async function enqueueAutomaticDiplomaDelivery(db: Queryable, participant
     [participantId]
   );
   const campaignId = String(campaign.rows[0]?.id);
-  const militaryRank = input.personnelType === 'militar' ? input.militaryRank!.trim() : 'NA';
-  const diplomaGrade = input.personnelType === 'civil'
-    ? 'Señor/a'
-    : `${militaryRank.replace(/\s*\([^)]*\)\s*$/, '')}${input.serviceStatus === 'retiro' ? ' (R)' : ''}`;
+  const militaryRank = 'NA';
+  const diplomaGrade = 'Señor/a';
 
   await db.query(
     `INSERT INTO diploma_deliveries (campaign_id, participant_id, recipient_email, participant_name, military_rank, diploma_grade)
