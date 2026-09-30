@@ -10,7 +10,6 @@ function payload(overrides: Record<string, unknown> = {}) {
     visitId: '550e8400-e29b-41d4-a716-446655440000',
     fullName: 'Participant Name',
     email: 'diploma@example.test',
-    consent: { accepted: true, version: 'consent-2026-09' },
     ...overrides
   };
 }
@@ -40,16 +39,14 @@ describe('automatic registration diploma delivery', () => {
     expect(db.statements.filter((statement) => statement.includes('communication_jobs'))).toHaveLength(0);
   });
 
-  it('does not queue a delivery for validation, consent, or participant conflict failures', async () => {
+  it('does not queue a delivery for validation or participant conflict failures', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
     const invalid = await request(app).post('/api/public/registrations').send(payload({ email: 'not-email' }));
-    const missingConsent = await request(app).post('/api/public/registrations').send(payload({ requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440012', consent: { accepted: false, version: 'consent-2026-09' } }));
     await request(app).post('/api/public/registrations').send(payload({ requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440013' }));
     const conflict = await request(app).post('/api/public/registrations').send(payload({ requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440014', fullName: 'Different Name' }));
 
     expect(invalid.status).toBe(400);
-    expect(missingConsent.status).toBe(400);
     expect(conflict.status).toBe(409);
     expect(db.diplomaDeliveries).toHaveLength(1);
   });

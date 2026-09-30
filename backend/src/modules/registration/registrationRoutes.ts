@@ -10,7 +10,7 @@ export function createRegistrationRoutes(env: AppEnv, db: Queryable): Router {
   const router = createRouter();
   router.post('/', validateRequest({ body: registrationRequestSchema }, registrationValidationDetailAllowlist), async (request, response, next) => {
     try {
-      const result = await registerParticipant(env, db, request.body);
+      const result = await registerParticipant(db, request.body);
       response.status(result.status).json(result.body);
     } catch (error) {
       next(error);

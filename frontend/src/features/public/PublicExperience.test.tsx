@@ -60,7 +60,7 @@ describe('Public event experience', () => {
     vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw new Error('Storage unavailable'); });
     renderApp();
     expect(await screen.findByRole('dialog')).toBeTruthy();
-    await waitFor(() => expect((screen.getByRole('button', { name: /enviar registro/i }) as HTMLButtonElement).disabled).toBe(false));
+    await waitFor(() => expect((screen.getByRole('button', { name: 'Registrarme' }) as HTMLButtonElement).disabled).toBe(false));
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).toBeNull();
     fireEvent.click(screen.getByRole('navigation', { name: 'Navegación móvil' }).querySelector('button')!);
@@ -168,7 +168,7 @@ describe('Public event experience', () => {
     window.localStorage.removeItem('communications_day_registration_dismissed');
     window.history.pushState({}, '', '/register');
     renderApp();
-    expect(await screen.findByRole('heading', { name: /regístrese para participar del evento/i })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Registre su participación en el evento' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Página principal del evento' })).toBeTruthy();
     expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toBeTruthy();
     expect(screen.getByRole('navigation', { name: 'Navegación móvil' })).toBeTruthy();
@@ -183,11 +183,11 @@ describe('Public event experience', () => {
     await screen.findByText('Celebración del Día del Arma de Comunicaciones');
     const opener = screen.getByRole('navigation', { name: 'Navegación móvil' }).querySelector<HTMLButtonElement>('button')!;
     fireEvent.click(opener);
-    const dialog = await screen.findByRole('dialog', { name: /regístrese para participar del evento/i });
+    const dialog = await screen.findByRole('dialog', { name: 'Registre su participación en el evento' });
     const close = screen.getByRole('button', { name: /cerrar registro/i });
     expect(document.activeElement).toBe(close);
     fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: /enviar registro/i }));
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Registrarme' }));
     fireEvent.keyDown(window, { key: 'Tab' });
     expect(document.activeElement).toBe(close);
     fireEvent.keyDown(window, { key: 'Escape' });

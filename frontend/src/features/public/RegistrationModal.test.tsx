@@ -28,11 +28,10 @@ describe('embedded registration modal', () => {
     const opener = screen.getByRole('navigation', { name: 'Navegación móvil' }).querySelector<HTMLButtonElement>('button')!;
     fireEvent.click(opener);
     await screen.findByRole('dialog');
-    await waitFor(() => expect((screen.getByRole('button', { name: /enviar registro/i }) as HTMLButtonElement).disabled).toBe(false));
+    await waitFor(() => expect((screen.getByRole('button', { name: 'Registrarme' }) as HTMLButtonElement).disabled).toBe(false));
     fireEvent.change(screen.getByLabelText(/Nombre completo/i), { target: { value: 'Participant Name' } });
     fireEvent.change(screen.getByLabelText(/Correo electrónico/i), { target: { value: 'person@example.test' } });
-    fireEvent.click(screen.getByLabelText(/Afirmo mi consentimiento/i));
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
 
     expect((await screen.findByRole('status')).textContent).toMatch(/recibirá la confirmación/i);
     expect(screen.queryByRole('dialog')).toBeNull();

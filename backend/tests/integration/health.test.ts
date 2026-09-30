@@ -10,8 +10,6 @@ const baseEnv = {
   PUBLIC_BASE_URL: 'http://localhost:5173',
   DATABASE_URL: 'postgres://user:pass@localhost:5432/testdb',
   JWT_SECRET: 'test-secret-value-with-at-least-thirty-two-characters',
-  ACTIVE_CONSENT_VERSION: 'consent-test',
-  CONSENT_TEXT: 'Test consent text',
   EMAIL_PROVIDER_MODE: 'simulation',
   WHATSAPP_PROVIDER_MODE: 'simulation',
   MAP_TILE_URL: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',

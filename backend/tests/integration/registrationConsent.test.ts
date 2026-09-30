@@ -9,30 +9,24 @@ const basePayload = {
   requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440001',
   visitId: '550e8400-e29b-41d4-a716-446655440000',
   fullName: 'Participant Name',
-  email: 'person@example.test',
-  consent: { accepted: true, version: 'consent-2026-09' }
+  email: 'person@example.test'
 };
 
-describe('backend-enforced consent', () => {
-  it('creates no personal record when consent is missing or false', async () => {
-    const db = new FakeDb();
-    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send({ ...basePayload, consent: { accepted: false, version: 'consent-2026-09' } });
-    expect(response.status).toBe(400);
-    expect(db.participants.size).toBe(0);
-  });
-
-  it('rejects stale consent and identifies the active version', async () => {
-    const response = await request(createApp(testEnv, new FakeDb())).post('/api/public/registrations').send({ ...basePayload, consent: { accepted: true, version: 'old' } });
-    expect(response.status).toBe(409);
-    expect(response.body).toMatchObject({ error: 'stale_consent_version', details: { activeConsentVersion: 'consent-2026-09' } });
-  });
-
-  it('accepts valid direct API consent with a server-observed registration', async () => {
+describe('consent-free registration contract', () => {
+  it('accepts a consent-free payload without querying or persisting consent', async () => {
     const db = new FakeDb();
     const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send(basePayload);
     expect(response.status).toBe(201);
-    expect(response.body.status).toBe('registered');
+    expect(response.body).toEqual({ participantId: expect.any(String), status: 'registered' });
     expect(db.participants.size).toBe(1);
+    expect(db.statements.some((statement) => statement.includes('consent_versions') || statement.includes('registration_consents'))).toBe(false);
+  });
+
+  it('rejects a legacy consent object without creating a personal record', async () => {
+    const db = new FakeDb();
+    const response = await request(createApp(testEnv, db)).post('/api/public/registrations').send({ ...basePayload, consent: { accepted: false, version: 'old' } });
+    expect(response.status).toBe(400);
+    expect(db.participants.size).toBe(0);
   });
 
   it('accepts a matching historical participant without changing legacy columns', async () => {

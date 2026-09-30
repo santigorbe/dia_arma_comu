@@ -6,7 +6,7 @@ const env = loadEnv();
 const pool = createPool(env);
 
 try {
-  const applied = await initializeDatabase(pool, env);
+  const applied = await initializeDatabase(pool);
   console.log(`Database initialization completed; applied ${applied.length} migration(s).`);
 } finally {
   await closePool(pool);

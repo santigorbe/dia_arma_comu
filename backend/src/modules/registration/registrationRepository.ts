@@ -18,11 +18,6 @@ export async function saveIdempotency(db: Queryable, key: string, status: number
   );
 }
 
-export async function findActiveConsent(db: Queryable) {
-  const result = await db.query('SELECT version, display_text FROM consent_versions WHERE is_active = true LIMIT 1', []);
-  return result.rows[0] as { version: string; display_text: string } | undefined;
-}
-
 export async function findParticipantByEmail(db: Queryable, email: string) {
   const result = await db.query('SELECT id, full_name, email, phone, unit_or_organization, personnel_type, military_rank, service_status FROM participants WHERE email = $1 LIMIT 1', [email]);
   return result.rows[0] as Record<string, unknown> | undefined;
@@ -36,11 +31,6 @@ export async function createParticipantRegistration(db: Queryable, input: Regist
     [input.fullName, input.email, null, null, 'civil', null, null]
   );
   const participantId = String(participant.rows[0]?.id);
-  await db.query(
-    `INSERT INTO registration_consents (participant_id, source_visit_id, consent_version, accepted_at)
-     VALUES ($1, $2, $3, now())`,
-    [participantId, input.visitId, input.consent.version]
-  );
   return participantId;
 }
 

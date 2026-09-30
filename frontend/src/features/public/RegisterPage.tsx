@@ -2,29 +2,24 @@ import { FormEvent, useState } from 'react';
 import { apiRequest, type ApiError } from '../../lib/apiClient';
 import { useVisit } from '../visits/VisitProvider';
 
-const activeConsentVersion = import.meta.env.VITE_ACTIVE_CONSENT_VERSION ?? 'consent-local-placeholder';
-
 type RegistrationState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'success'; participantId: string }
-  | { status: 'error' | 'conflict' | 'stale_consent'; message: string; activeConsentVersion?: string };
+  | { status: 'error' | 'conflict'; message: string };
 
-type RegistrationControlName = 'fullName' | 'email' | 'consent';
+type RegistrationControlName = 'fullName' | 'email';
 type FieldErrors = Partial<Record<RegistrationControlName, string>>;
 
-const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email', 'consent'];
+const CONTROL_ORDER: RegistrationControlName[] = ['fullName', 'email'];
 const VALIDATION_MESSAGES: Record<string, Record<string, string>> = {
   fullName: messages(['invalid_type', 'too_small', 'too_big'], 'Ingrese un nombre completo válido.'),
-  email: messages(['invalid_type', 'invalid_string', 'too_big'], 'Ingrese un correo electrónico válido.'),
-  'consent.accepted': messages(['invalid_type', 'invalid_literal'], 'Confirme el consentimiento para continuar.'),
-  'consent.version': messages(['invalid_type', 'too_small', 'too_big'], 'Revise la versión activa del consentimiento.')
+  email: messages(['invalid_type', 'invalid_string', 'too_big'], 'Ingrese un correo electrónico válido.')
 };
 
 export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { embedded?: boolean; onSuccessfulRegistration?: () => void }) {
   const visit = useVisit();
   const [state, setState] = useState<RegistrationState>({ status: 'idle' });
-  const [consentVersion, setConsentVersion] = useState(activeConsentVersion);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -36,12 +31,6 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
     }
 
     const form = new FormData(formElement);
-    const accepted = form.get('consent') === 'on';
-    if (!accepted) {
-      setState({ status: 'error', message: 'El consentimiento es obligatorio antes del registro.' });
-      return;
-    }
-
     setFieldErrors({});
     setState({ status: 'loading' });
     try {
@@ -51,8 +40,7 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           requestIdempotencyKey: crypto.randomUUID(),
           visitId: visit.visitId,
           fullName: String(form.get('fullName') ?? ''),
-          email: String(form.get('email') ?? ''),
-          consent: { accepted: true, version: consentVersion }
+          email: String(form.get('email') ?? '')
         })
       });
       if (onSuccessfulRegistration) {
@@ -69,12 +57,6 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
       }
       const apiError = error as ApiError;
       const body = apiError.body as { error?: string; details?: unknown } | undefined;
-      if (body?.error === 'stale_consent_version') {
-        const nextVersion = activeConsentVersionFromDetails(body.details) ?? consentVersion;
-        setConsentVersion(nextVersion);
-        setState({ status: 'stale_consent', message: 'El consentimiento cambió. Revise la versión activa y vuelva a enviar el formulario.', activeConsentVersion: nextVersion });
-        return;
-      }
       if (body?.error === 'participant_conflict') {
         setState({ status: 'conflict', message: 'Ya existe un registro para esta identidad del evento con datos diferentes.' });
         return;
@@ -118,31 +100,15 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
           <input name="email" type="email" required {...invalidProps('email')} />
           <FieldError name="email" errors={fieldErrors} />
         </label>
-        <section className="consent-panel">
-          <h2>Consentimiento</h2>
-          <p>Usted acepta recibir un correo con el diploma de participación al finalizar el evento via correo electronico. Sus datos serán utilizados exclusivamente para este propósito.</p>
-          <label className="consent-checkbox">
-            <input name="consent" type="checkbox" {...invalidProps('consent')} />
-            <span>Afirmo mi consentimiento.</span>
-          </label>
-          <FieldError name="consent" errors={fieldErrors} />
-        </section>
-      
         {visit.status === 'error' && <StatusMessage tone="error" message={visit.error ?? 'No se pudo inicializar la visita.'} />}
-        {state.status !== 'idle' && state.status !== 'loading' && <StatusMessage tone={state.status === 'success' ? 'success' : 'error'} message={state.status === 'success' ? 'El registro se aceptó con el consentimiento validado por el sistema.' : state.message} />}
+        {state.status !== 'idle' && state.status !== 'loading' && <StatusMessage tone={state.status === 'success' ? 'success' : 'error'} message={state.status === 'success' ? 'El registro se aceptó.' : state.message} />}
       
         <button disabled={state.status === 'loading' || visit.status !== 'ready'} className="registration-submit">
-          {state.status === 'loading' ? 'Enviando…' : 'Enviar registro'}
+          {state.status === 'loading' ? 'Enviando…' : 'Registrarme'}
         </button>
       </form>
       </Container>
   );
-}
-
-function activeConsentVersionFromDetails(details: unknown) {
-  if (!details || typeof details !== 'object') return undefined;
-  const { activeConsentVersion } = details as { activeConsentVersion?: unknown };
-  return typeof activeConsentVersion === 'string' ? activeConsentVersion : undefined;
 }
 
 function messages(codes: string[], message: string) {
@@ -164,7 +130,6 @@ function mapValidationDetails(details: unknown, form: HTMLFormElement): FieldErr
 }
 
 function validationControlName(field: string, form: HTMLFormElement): RegistrationControlName | undefined {
-  if (field === 'consent.accepted' || field === 'consent.version') return 'consent';
   const name = field as RegistrationControlName;
   return CONTROL_ORDER.includes(name) && form.elements.namedItem(name) ? name : undefined;
 }

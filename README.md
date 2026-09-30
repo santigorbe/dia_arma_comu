@@ -25,7 +25,7 @@ The default provider mode is simulation. No real email or WhatsApp credentials a
 
 `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` must exist even when `DATABASE_URL` exists. Keep them aligned with the database name and credentials encoded in `DATABASE_URL`. Under Compose, `DATABASE_URL` must use `postgres` as its host, not `localhost`.
 
-Compose runs `db-init` after PostgreSQL is healthy. It applies all versioned migrations and atomically creates or activates the configured `ACTIVE_CONSENT_VERSION` with `CONSENT_TEXT` before the backend starts. The frontend build receives only these public values derived by Compose: `VITE_API_BASE_URL` from `BACKEND_ORIGIN`, `VITE_MAP_TILE_URL` from `MAP_TILE_URL`, and `VITE_ACTIVE_CONSENT_VERSION` from `ACTIVE_CONSENT_VERSION`.
+Compose runs `db-init` after PostgreSQL is healthy and applies all versioned migrations before the backend starts. The frontend build receives `VITE_API_BASE_URL` from `BACKEND_ORIGIN` and `VITE_MAP_TILE_URL` from `MAP_TILE_URL`.
 
 ### Cookie defaults
 
@@ -81,4 +81,4 @@ Accepted registrations queue diploma delivery through the `diploma-worker` servi
 
 ## Production prerequisites
 
-Operators must provide approved origins, cookie/domain settings, retention values, final event content, consent text/version, map tile policy, and authorized institutional assets before production readiness can pass.
+Operators must provide approved origins, cookie/domain settings, retention values, final event content, map tile policy, and authorized institutional assets before production readiness can pass.

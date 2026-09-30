@@ -17,7 +17,6 @@ export class FakeDb implements Queryable {
   publicContent: Record<string, unknown>[] = [];
   publicSchedule: Record<string, unknown>[] = [];
   publicMapPoints: Record<string, unknown>[] = [];
-  activeConsent = { version: 'consent-2026-09', display_text: 'Test consent text.' };
   failOnSqlPattern?: RegExp;
 
   async query(text: string, values: unknown[] = []): Promise<QueryResult> {
@@ -58,10 +57,6 @@ export class FakeDb implements Queryable {
     if (text.includes('INSERT INTO idempotency_records')) {
       this.idempotency.set(String(values[1]), { response_status: Number(values[2]), response_body: values[3] });
       return result([]);
-    }
-
-    if (text.includes('SELECT version, display_text FROM consent_versions')) {
-      return result([this.activeConsent]);
     }
 
     if (text.includes('SELECT id, password_hash, is_active FROM admins WHERE identifier = $1')) {
@@ -227,10 +222,6 @@ export class FakeDb implements Queryable {
       const row = { id, full_name: values[0], email: values[1], phone: values[2], unit_or_organization: values[3], personnel_type: values[4], military_rank: values[5], service_status: values[6] };
       this.participants.set(String(values[1]), row);
       return result([{ id }]);
-    }
-
-    if (text.includes('INSERT INTO registration_consents')) {
-      return result([]);
     }
 
     if (text.includes('SELECT id, full_name, military_rank, phone, card_image_filename FROM participants WHERE id = $1')) {

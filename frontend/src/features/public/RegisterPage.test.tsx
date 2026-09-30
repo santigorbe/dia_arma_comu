@@ -20,61 +20,30 @@ describe('RegisterPage', () => {
     vi.stubGlobal('crypto', { randomUUID: () => '550e8400-e29b-41d4-a716-446655440099' });
   });
 
-  it('requires affirmative consent before sending registration data', async () => {
-    let registrationCalls = 0;
-    server.use(http.post('/api/public/registrations', () => {
-      registrationCalls += 1;
-      return HttpResponse.json({ participantId: 'participant-1' }, { status: 201 });
-    }));
-    renderPage();
-    await screen.findByText(/Enviar registro/i);
-
-    fillForm();
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
-
-    expect(await screen.findByText(/El consentimiento es obligatorio/i)).toBeTruthy();
-    expect(registrationCalls).toBe(0);
-  });
-
-  it('submits valid data and shows success', async () => {
+  it('submits the consent-free registration contract and shows success', async () => {
     let payload: Record<string, unknown> | undefined;
     server.use(http.post('/api/public/registrations', async ({ request }) => {
       payload = await request.json() as Record<string, unknown>;
-      return HttpResponse.json({ participantId: 'participant-1', status: 'registered', consentVersion: 'consent-local-placeholder' }, { status: 201 });
+      return HttpResponse.json({ participantId: 'participant-1', status: 'registered' }, { status: 201 });
     }));
     renderPage();
     expect(screen.queryByLabelText(/Teléfono/i)).toBeNull();
     expect(screen.queryByLabelText(/Personal/i)).toBeNull();
     expect(screen.queryByLabelText(/Grado/i)).toBeNull();
     expect(screen.queryByLabelText(/Situación/i)).toBeNull();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    fillForm(true);
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+    expect(screen.queryByText(/Consentimiento/i)).toBeNull();
+    expect(screen.queryByLabelText(/Afirmo mi consentimiento/i)).toBeNull();
+    await screen.findByRole('button', { name: 'Registrarme' });
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
 
     expect(await screen.findByText(/El registro se aceptó/i)).toBeTruthy();
     expect(payload).toEqual({
       requestIdempotencyKey: '550e8400-e29b-41d4-a716-446655440099',
       visitId: '550e8400-e29b-41d4-a716-446655440000',
       fullName: 'Participant Name',
-      email: 'person@example.test',
-      consent: { accepted: true, version: 'consent-local-placeholder' }
+      email: 'person@example.test'
     });
-  });
-
-  it('recovers from stale consent responses with the active version', async () => {
-    let payload: Record<string, unknown> | undefined;
-    server.use(http.post('/api/public/registrations', async ({ request }) => {
-      payload = await request.json() as Record<string, unknown>;
-      return HttpResponse.json({ error: 'stale_consent_version', details: { activeConsentVersion: 'consent-2026-09' } }, { status: 409 });
-    }));
-    renderPage();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    fillForm(true);
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
-
-    expect(await screen.findByText(/El consentimiento cambió/i)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
-    await vi.waitFor(() => expect(payload).toMatchObject({ consent: { version: 'consent-2026-09' } }));
   });
 
   it('renders field feedback, accessibility attributes, and focuses the first invalid field', async () => {
@@ -88,9 +57,9 @@ describe('RegisterPage', () => {
       ]
     }, { status: 400 })));
     renderPage();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    fillForm(true);
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+    await screen.findByRole('button', { name: 'Registrarme' });
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
 
     const name = await screen.findByLabelText(/Nombre completo/i);
     const email = screen.getByLabelText(/Correo electrónico/i);
@@ -106,9 +75,9 @@ describe('RegisterPage', () => {
   it('uses truthful fallback feedback when validation details are absent', async () => {
     server.use(http.post('/api/public/registrations', () => HttpResponse.json({ error: 'validation_failed' }, { status: 400 })));
     renderPage();
-    await screen.findByRole('button', { name: /enviar registro/i });
-    fillForm(true);
-    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+    await screen.findByRole('button', { name: 'Registrarme' });
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
 
     expect(await screen.findByText(/No se pudieron validar los datos del registro/i)).toBeTruthy();
     expect(screen.queryByText(/campos del registro marcados/i)).toBeNull();
@@ -120,10 +89,7 @@ function renderPage() {
   render(<VisitProvider><RegisterPage /></VisitProvider>);
 }
 
-function fillForm(consent = false) {
+function fillForm() {
   fireEvent.change(screen.getByLabelText(/Nombre completo/i), { target: { value: 'Participant Name' } });
   fireEvent.change(screen.getByLabelText(/Correo electrónico/i), { target: { value: 'person@example.test' } });
-  if (consent) {
-    fireEvent.click(screen.getByLabelText(/Afirmo mi consentimiento/i));
-  }
 }

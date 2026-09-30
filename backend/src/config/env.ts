@@ -18,8 +18,6 @@ const envSchema = z.object({
   AUTH_COOKIE_MAX_AGE_SECONDS: z.coerce.number().int().positive().default(3600),
   ADMIN_BOOTSTRAP_IDENTIFIER: z.string().min(3).or(z.literal('')).optional().default(''),
   ADMIN_BOOTSTRAP_PASSWORD: z.string().min(12).or(z.literal('')).optional().default(''),
-  ACTIVE_CONSENT_VERSION: z.string().min(1),
-  CONSENT_TEXT: z.string().min(1),
   EMAIL_PROVIDER_MODE: providerModeSchema.default('simulation'),
   WHATSAPP_PROVIDER_MODE: providerModeSchema.default('simulation'),
   BREVO_API_KEY: z.string().optional().default(''),

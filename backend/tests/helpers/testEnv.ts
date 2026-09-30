@@ -15,8 +15,6 @@ export const testEnv: AppEnv = {
   AUTH_COOKIE_MAX_AGE_SECONDS: 3600,
   ADMIN_BOOTSTRAP_IDENTIFIER: '',
   ADMIN_BOOTSTRAP_PASSWORD: '',
-  ACTIVE_CONSENT_VERSION: 'consent-2026-09',
-  CONSENT_TEXT: 'Test consent text.',
   EMAIL_PROVIDER_MODE: 'simulation',
   WHATSAPP_PROVIDER_MODE: 'simulation',
   BREVO_API_KEY: '',
