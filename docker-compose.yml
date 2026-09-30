@@ -1,5 +1,5 @@
 x-backend-runtime-env-file: &backend-runtime-env-file
-  - backend/.env
+  - .env
 
 services:
   db-init:
@@ -93,8 +93,9 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000}
-        VITE_MAP_TILE_URL: ${VITE_MAP_TILE_URL:-https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}}
+        VITE_API_BASE_URL: ${BACKEND_ORIGIN:-http://localhost:3000}
+        VITE_MAP_TILE_URL: ${MAP_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
+        VITE_ACTIVE_CONSENT_VERSION: ${ACTIVE_CONSENT_VERSION:-consent-local-placeholder}
     ports:
       - "5173:5173"
     depends_on:

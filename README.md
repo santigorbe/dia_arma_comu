@@ -9,25 +9,27 @@ Greenfield monorepo foundation for the Communications Branch and Data Computing 
 - `docker-compose.yml` runs PostgreSQL, backend, and frontend locally.
 - `.env.example` documents the non-secret configuration contract.
 
-## Local setup
+## Docker-only local setup
 
 ```bash
 cp .env.example .env
-pnpm install
-pnpm run migrate
-pnpm run dev
-```
-
-The default provider mode is simulation. No real email or WhatsApp credentials are required for local development.
-
-## Docker runtime
-
-```bash
 docker compose config
 docker compose up --build
 ```
 
-Compose runs the `db-init` service after PostgreSQL is healthy. It applies all versioned migrations and atomically creates or activates the configured consent version before the backend starts. `VITE_API_BASE_URL` is supplied as a Vite build argument, so set it before `docker compose up --build` when the browser must use a different API origin.
+The root `.env` is the only operational configuration source for Compose: it supplies the backend, `db-init`, both workers, and derived public frontend build values. Do not create `backend/.env` or add `VITE_*` variables to `.env`.
+
+The default provider mode is simulation. No real email or WhatsApp credentials are required for local development.
+
+### Database contract
+
+`POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` must exist even when `DATABASE_URL` exists. Keep them aligned with the database name and credentials encoded in `DATABASE_URL`. Under Compose, `DATABASE_URL` must use `postgres` as its host, not `localhost`.
+
+Compose runs `db-init` after PostgreSQL is healthy. It applies all versioned migrations and atomically creates or activates the configured `ACTIVE_CONSENT_VERSION` with `CONSENT_TEXT` before the backend starts. The frontend build receives only these public values derived by Compose: `VITE_API_BASE_URL` from `BACKEND_ORIGIN`, `VITE_MAP_TILE_URL` from `MAP_TILE_URL`, and `VITE_ACTIVE_CONSENT_VERSION` from `ACTIVE_CONSENT_VERSION`.
+
+### Cookie defaults
+
+For local HTTP Docker use, set `AUTH_COOKIE_DOMAIN=` (empty), `AUTH_COOKIE_SECURE=false`, and `AUTH_COOKIE_SAME_SITE=lax`. The checked backend defaults are `AUTH_COOKIE_NAME=communications_day_admin` and `AUTH_COOKIE_MAX_AGE_SECONDS=3600`. In production HTTPS, set `AUTH_COOKIE_SECURE=true` and provide an explicit cookie domain when the deployment topology requires one.
 
 Backend liveness is available at `http://localhost:3000/health/live`. Backend readiness is available at `http://localhost:3000/health/ready` and requires valid configuration, database connectivity, and current migrations.
 
@@ -75,7 +77,7 @@ Foundation tests cover migration ordering/idempotency and health/readiness behav
 
 Email and WhatsApp run in simulation by default. Real delivery must remain disabled until operators provide credentials, sender identities, approved templates, domains, and provider approval evidence.
 
-Registration confirmations are persisted in the email outbox and delivered by the `worker` service. In simulation mode the worker records a delivered attempt without contacting a provider. To activate Brevo in a controlled environment, set `EMAIL_PROVIDER_MODE=real`, `BREVO_API_KEY`, and `BREVO_FROM_EMAIL` in `backend/.env`; the sender address must be operator-verified in Brevo. Compose supplies that file to the database initialization, API, and worker services without storing secrets in source. When `EMAIL_PROVIDER_MODE` is absent, backend configuration safely defaults to simulation. Brevo sender verification remains an operator responsibility and is not validated remotely by this application. Delivery failures are recorded for retry and do not change an accepted registration response.
+Registration confirmations are persisted in the email outbox and delivered by the `worker` service. In simulation mode the worker records a delivered attempt without contacting a provider. To activate Brevo in a controlled environment, set `EMAIL_PROVIDER_MODE=real`, `BREVO_API_KEY`, and `BREVO_FROM_EMAIL` in the root `.env`; the sender address must be operator-verified in Brevo. When `EMAIL_PROVIDER_MODE` is absent, backend configuration safely defaults to simulation. Brevo sender verification remains an operator responsibility and is not validated remotely by this application. Delivery failures are recorded for retry and do not change an accepted registration response.
 
 ## Production prerequisites
 

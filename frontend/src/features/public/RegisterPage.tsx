@@ -27,7 +27,6 @@ const MILITARY_RANKS: Array<{ name: string; code: string }> = [
 ];
 
 const activeConsentVersion = import.meta.env.VITE_ACTIVE_CONSENT_VERSION ?? 'consent-local-placeholder';
-const activeConsentText = import.meta.env.VITE_CONSENT_TEXT ?? 'Texto local de consentimiento no definitivo. Los operadores deben proporcionar la redacción aprobada del consentimiento antes de su uso en producción.';
 
 type RegistrationState =
   | { status: 'idle' }
