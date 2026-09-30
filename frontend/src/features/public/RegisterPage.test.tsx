@@ -108,14 +108,19 @@ describe('RegisterPage', () => {
   });
 
   it('recovers from stale consent responses with the active version', async () => {
-    server.use(http.post('/api/public/registrations', () => HttpResponse.json({ error: 'stale_consent_version', activeConsentVersion: 'consent-2026-09' }, { status: 409 })));
+    let payload: Record<string, unknown> | undefined;
+    server.use(http.post('/api/public/registrations', async ({ request }) => {
+      payload = await request.json() as Record<string, unknown>;
+      return HttpResponse.json({ error: 'stale_consent_version', details: { activeConsentVersion: 'consent-2026-09' } }, { status: 409 });
+    }));
     renderPage();
     await screen.findByRole('button', { name: /enviar registro/i });
     fillForm(true);
     fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
 
     expect(await screen.findByText(/El consentimiento cambió/i)).toBeTruthy();
-    expect(screen.getByText(/Versión del consentimiento consent-2026-09/i)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /enviar registro/i }));
+    await vi.waitFor(() => expect(payload).toMatchObject({ consent: { version: 'consent-2026-09' } }));
   });
 
   it('renders field feedback, accessibility attributes, and focuses the first invalid field', async () => {

@@ -102,9 +102,9 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
         return;
       }
       const apiError = error as ApiError;
-      const body = apiError.body as { error?: string; details?: unknown; activeConsentVersion?: string } | undefined;
+      const body = apiError.body as { error?: string; details?: unknown } | undefined;
       if (body?.error === 'stale_consent_version') {
-        const nextVersion = body.activeConsentVersion ?? consentVersion;
+        const nextVersion = activeConsentVersionFromDetails(body.details) ?? consentVersion;
         setConsentVersion(nextVersion);
         setState({ status: 'stale_consent', message: 'El consentimiento cambió. Revise la versión activa y vuelva a enviar el formulario.', activeConsentVersion: nextVersion });
         return;
@@ -224,6 +224,12 @@ export function RegisterPage({ embedded = false, onSuccessfulRegistration }: { e
 function optionalString(value: FormDataEntryValue | null) {
   const normalized = String(value ?? '').trim();
   return normalized ? normalized : undefined;
+}
+
+function activeConsentVersionFromDetails(details: unknown) {
+  if (!details || typeof details !== 'object') return undefined;
+  const { activeConsentVersion } = details as { activeConsentVersion?: unknown };
+  return typeof activeConsentVersion === 'string' ? activeConsentVersion : undefined;
 }
 
 function messages(codes: string[], message: string) {
