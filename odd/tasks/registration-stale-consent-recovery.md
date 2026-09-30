@@ -58,7 +58,9 @@ RSC-01 and RSC-02 are complete. The focused Vitest run passed with 1 test file a
 - Runtime evidence: N/A — this bounded client-side error-recovery change is covered by the focused MSW/Vitest interaction test; no standalone runtime process was required or started.
 - Rollback boundary: revert only the nested stale-consent version extraction, its canonical-response regression test, and this tracker evidence; no API contract, environment, or unrelated worktree change is involved.
 - Work-unit commit: `4ab5f4d fix(registration): recover stale consent version`.
+- Native RDD assessment: `medium`, `review_due: true`, `review_due_reason: slice_budget_reached` for the committed range from `1975dfd` (72 paths, 4,956 authored lines).
+- Native review consent: declined for this candidate only; no review record was created and receipt-driven development remains enabled.
 
 ## Next Step
 
-The work unit is complete. The tracker received a completion-evidence correction after the implementation commit.
+The work unit is complete. The tracker received completion and review-status evidence corrections after the implementation commit.
