@@ -78,6 +78,7 @@ describe('administrative API contracts', () => {
     const response = await agent.post('/api/admin/diploma-campaigns').set('Origin', origin).send({});
 
     expect(response).toMatchObject({ status: 201, body: { campaign: { state: 'queued', audienceCount: 3 } } });
+    expect(db.diplomaCampaigns).toEqual([expect.objectContaining({ origin: 'admin', audienceCount: 3 })]);
     expect(db.diplomaDeliveries).toEqual(expect.arrayContaining([
       expect.objectContaining({ participant_id: 'participant-1', military_rank: 'Sargento (SG)', diploma_grade: 'Señor/a' }),
       expect.objectContaining({ participant_id: 'participant-2', military_rank: 'Coronel (CR)', diploma_grade: 'Señor/a' }),

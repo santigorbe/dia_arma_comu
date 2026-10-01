@@ -14,8 +14,8 @@ function payload(overrides: Record<string, unknown> = {}) {
   };
 }
 
-describe('automatic registration diploma delivery', () => {
-  it('queues one Señor/a snapshot for a new participant and no additional snapshot for replay or compatible repeat registration', async () => {
+describe('public registration diploma isolation', () => {
+  it('creates one participant without creating a campaign, delivery, or outbound work on new, replay, and compatible-repeat registrations', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
     const registration = payload({ email: 'santigorbe@gmail.com' });
@@ -26,20 +26,15 @@ describe('automatic registration diploma delivery', () => {
     expect(first.status).toBe(201);
     expect(replay.body).toEqual(first.body);
     expect(compatibleRepeat.status).toBe(201);
-    expect(db.diplomaCampaigns).toEqual([expect.objectContaining({ origin: 'registration', audienceCount: 1 })]);
-    expect(db.diplomaDeliveries).toEqual([expect.objectContaining({
-      participant_id: first.body.participantId,
-      recipient_email: 'santigorbe@gmail.com',
-      participant_name: 'Participant Name',
-      military_rank: 'NA',
-      diploma_grade: 'Señor/a'
-    })]);
-    expect(db.statements.filter((statement) => statement.includes('INSERT INTO diploma_campaigns'))).toHaveLength(1);
-    expect(db.statements.filter((statement) => statement.includes('INSERT INTO diploma_deliveries'))).toHaveLength(1);
+    expect(db.participants).toHaveLength(1);
+    expect(db.diplomaCampaigns).toEqual([]);
+    expect(db.diplomaDeliveries).toEqual([]);
+    expect(db.statements.filter((statement) => statement.includes('INSERT INTO diploma_campaigns'))).toHaveLength(0);
+    expect(db.statements.filter((statement) => statement.includes('INSERT INTO diploma_deliveries'))).toHaveLength(0);
     expect(db.statements.filter((statement) => statement.includes('communication_jobs'))).toHaveLength(0);
   });
 
-  it('does not queue a delivery for validation or participant conflict failures', async () => {
+  it('does not create diploma work for validation or participant conflict failures', async () => {
     const db = new FakeDb();
     const app = createApp(testEnv, db);
     const invalid = await request(app).post('/api/public/registrations').send(payload({ email: 'not-email' }));
@@ -48,6 +43,7 @@ describe('automatic registration diploma delivery', () => {
 
     expect(invalid.status).toBe(400);
     expect(conflict.status).toBe(409);
-    expect(db.diplomaDeliveries).toHaveLength(1);
+    expect(db.diplomaCampaigns).toEqual([]);
+    expect(db.diplomaDeliveries).toEqual([]);
   });
 });

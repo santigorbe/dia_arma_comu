@@ -23,8 +23,10 @@ describe('foundation migrations', () => {
        '0014_relax_participant_service_status.sql',
        '0015_diploma_campaigns.sql',
        '0016_participant_card_image.sql',
-        '0017_diploma_delivery_grade.sql',
-        '0018_registration_diploma_deliveries.sql'
+         '0017_diploma_delivery_grade.sql',
+         '0018_registration_diploma_deliveries.sql',
+         '0019_fix_sistema_computos_de_datos.sql',
+         '0020_remove_registration_diploma_deliveries.sql'
     ]);
     expect(migrations.every((migration) => migration.sql.trim().length > 0)).toBe(true);
   });
@@ -33,10 +35,10 @@ describe('foundation migrations', () => {
     const db = new FakeDb();
     const migrations = await loadMigrations();
 
-    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018']);
+    await expect(runMigrations(db, migrations)).resolves.toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018', '0019', '0020']);
     await expect(runMigrations(db, migrations)).resolves.toEqual([]);
 
-    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018']);
+    expect([...db.migrations]).toEqual(['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018', '0019', '0020']);
   });
 
   it('seeds published fictional activities with stable IDs and preserves existing rows', async () => {
@@ -150,6 +152,19 @@ describe('foundation migrations', () => {
     expect(sql).toContain("origin = 'registration' AND created_by IS NULL");
     expect(sql).toContain('diploma_campaigns_registration_participant_unique');
     expect(sql).toContain("WHERE origin = 'registration'");
+  });
+
+  it('removes only registration-origin deliveries and campaigns without touching participants or admin campaigns', async () => {
+    const migration = (await loadMigrations()).find((entry) => entry.name === '0020_remove_registration_diploma_deliveries.sql');
+    expect(migration).toBeDefined();
+    const sql = migration!.sql;
+
+    expect(sql).toContain('DELETE FROM diploma_deliveries AS delivery');
+    expect(sql).toContain('USING diploma_campaigns AS campaign');
+    expect(sql).toContain("campaign.origin = 'registration'");
+    expect(sql).toContain('DELETE FROM diploma_campaigns');
+    expect(sql).toContain("WHERE origin = 'registration'");
+    expect(sql).not.toMatch(/DELETE FROM participants|origin = 'admin'|UPDATE|TRUNCATE/i);
   });
 
   it('rolls back failed migrations without exposing the failing SQL as a readiness detail', async () => {
