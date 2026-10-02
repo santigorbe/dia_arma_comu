@@ -79,26 +79,8 @@ export class FakeDb implements Queryable {
       return result([]);
     }
 
-    if (text.includes('INSERT INTO diploma_campaigns (origin, registration_participant_id, audience_count)')) {
-      const participantId = String(values[0]);
-      let campaign = this.diplomaCampaigns.find((entry) => entry.origin === 'registration' && entry.registration_participant_id === participantId);
-      if (!campaign) {
-        campaign = { id: `diploma-campaign-${this.diplomaCampaigns.length + 1}`, state: 'queued', audienceCount: 1, origin: 'registration', registration_participant_id: participantId };
-        this.diplomaCampaigns.push(campaign);
-      }
-      return result([campaign]);
-    }
-
-    if (text.includes('INSERT INTO diploma_deliveries (campaign_id, participant_id, recipient_email, participant_name, military_rank, diploma_grade) VALUES')) {
-      const [campaignId, participantId, recipientEmail, participantName, militaryRank, diplomaGrade] = values;
-      if (!this.diplomaDeliveries.some((entry) => entry.campaign_id === campaignId && entry.participant_id === participantId)) {
-        this.diplomaDeliveries.push({ campaign_id: campaignId, participant_id: participantId, recipient_email: recipientEmail, participant_name: participantName, military_rank: militaryRank, diploma_grade: diplomaGrade });
-      }
-      return result([]);
-    }
-
     if (text.includes('INSERT INTO diploma_campaigns')) {
-      const campaign = { id: `diploma-campaign-${this.diplomaCampaigns.length + 1}`, state: 'queued', audienceCount: 0 };
+      const campaign = { id: `diploma-campaign-${this.diplomaCampaigns.length + 1}`, state: 'queued', audienceCount: 0, origin: 'admin' };
       this.diplomaCampaigns.push(campaign);
       return result([campaign]);
     }

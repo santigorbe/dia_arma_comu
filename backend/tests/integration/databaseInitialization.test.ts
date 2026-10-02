@@ -23,10 +23,12 @@ describe('database initialization', () => {
         '0014',
         '0015',
          '0016',
-          '0017',
-          '0018'
+           '0017',
+           '0018',
+           '0019',
+           '0020'
     ]);
 
-    expect(db.statements.filter((statement) => statement.includes('INSERT INTO schema_migrations'))).toHaveLength(18);
+    expect(db.statements.filter((statement) => statement.includes('INSERT INTO schema_migrations'))).toHaveLength(20);
   });
 });

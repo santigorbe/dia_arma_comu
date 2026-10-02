@@ -33,24 +33,3 @@ export async function createParticipantRegistration(db: Queryable, input: Regist
   const participantId = String(participant.rows[0]?.id);
   return participantId;
 }
-
-export async function enqueueAutomaticDiplomaDelivery(db: Queryable, participantId: string, input: RegistrationRequest) {
-  const campaign = await db.query(
-    `INSERT INTO diploma_campaigns (origin, registration_participant_id, audience_count)
-     VALUES ('registration', $1, 1)
-     ON CONFLICT (registration_participant_id) WHERE origin = 'registration'
-     DO UPDATE SET registration_participant_id = EXCLUDED.registration_participant_id
-     RETURNING id`,
-    [participantId]
-  );
-  const campaignId = String(campaign.rows[0]?.id);
-  const militaryRank = 'NA';
-  const diplomaGrade = 'Señor/a';
-
-  await db.query(
-    `INSERT INTO diploma_deliveries (campaign_id, participant_id, recipient_email, participant_name, military_rank, diploma_grade)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (campaign_id, participant_id) DO NOTHING`,
-    [campaignId, participantId, input.email, input.fullName, militaryRank, diplomaGrade]
-  );
-}
